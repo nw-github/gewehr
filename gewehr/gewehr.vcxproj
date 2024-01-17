@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\player.cpp" />
     <ClCompile Include="src\skinchanger.cpp" />
     <ClCompile Include="src\utils\config.cpp">
@@ -49,10 +50,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\features.hpp" />
+    <ClInclude Include="include\game.hpp" />
     <ClInclude Include="include\utils\config.hpp">
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="include\utils\render.hpp" />
     <ClInclude Include="lib\fmt\args.h" />
     <ClInclude Include="lib\fmt\chrono.h" />
     <ClInclude Include="lib\fmt\color.h" />
@@ -146,8 +149,6 @@
       <SubType>
       </SubType>
     </ClInclude>
-    <ClInclude Include="include\utils\options.hpp" />
-    <ClInclude Include="include\utils\render.hpp" />
     <ClInclude Include="include\utils\utils.hpp">
       <SubType>
       </SubType>

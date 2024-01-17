@@ -23,6 +23,7 @@
 #include <mutex>
 #include <memory>
 #include <variant>
+#include <optional>
 
 #include <cstdarg>
 #include <cstdio>

@@ -1,9 +1,10 @@
 #pragma once
+#include "utils/memory.hpp"
 
 class Offsets
 {
 public:
-    bool initialize();
+    static std::optional<Offsets> init(const Memory &mem);
     
 public:
     // signatures
@@ -47,11 +48,7 @@ public:
     DWORD m_bIsScoped                  = 0;
 
 private:
-    bool scan_netvars(DWORD dwGetAllClasses);
+    bool initialize(const Memory& mem);
+    bool scan_netvars(const Memory& mem, DWORD dwGetAllClasses);
 
 };
-
-namespace g
-{
-    inline std::unique_ptr<::Offsets> offsets = std::make_unique<::Offsets>();
-}

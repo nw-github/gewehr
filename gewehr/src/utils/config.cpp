@@ -3,42 +3,44 @@
 
 #include "utils/config.hpp"
 
-Config::Config() {
+namespace fs = std::filesystem;
+
+// TODO: unglobalify
+namespace {
+    fs::path folder;
+    fs::path config;
+}
+
+std::optional<Options> Options::load() {
     char documents[MAX_PATH];
     if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, documents))) {
-        m_folderpath = std::filesystem::path{documents} / FOLDER_NAME;
-        m_configpath = m_folderpath / xorstr("config.json");
+        folder = fs::path{documents} / FOLDER_NAME;
+        config = folder / xorstr("config.json");
+
+        nlohmann::json js;
+        try {
+            if (std::ifstream file{config})
+                file >> js;
+
+            return js.get<Options>();
+        } catch (const std::exception &ex) {
+            utl::println("Error loading config file: {}", ex.what());
+        }
     }
+
+    return std::nullopt;
 }
 
-void Config::save_all() const {
-    if (!std::filesystem::exists(m_folderpath))
-        std::filesystem::create_directory(m_folderpath);
+bool Options::save() const {
+    if (!std::filesystem::exists(folder) || !std::filesystem::create_directory(folder))
+        return false;
 
-    nlohmann::json js;
-    for (const auto& ptr : m_options)
-        ptr->save(js);
-
-    std::ofstream file{m_configpath};
-    if (file)
-        file << std::setw(4) << js;
-}
-
-void Config::load_all() {
-    nlohmann::json js;
     try {
-        if (std::ifstream file{m_configpath})
-            file >> js;
-    } catch (const std::exception &ex) {
-        utl::println("Error loading config file: {}", ex.what());
-        return;
+        std::ofstream file{config};
+        if (file)
+            file << std::setw(4) << nlohmann::json{*this};
+        return true;
+    } catch (const std::exception &) {
+        return false;
     }
-
-    std::scoped_lock lock{m_load_mutex};
-    for (auto &ptr : m_options)
-        ptr->load(js);
-}
-
-bool Config::exists() const {
-    return std::filesystem::exists(m_configpath);
 }

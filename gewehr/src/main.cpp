@@ -1,196 +1,146 @@
 #include <stdafx.h>
 
+#include "game.hpp"
 #include "features.hpp"
-
-#include "utils/options.hpp"
 #include "utils/utils.hpp"
-#include "utils/offsets.hpp"
-#include "utils/render.hpp"
-#include "utils/memory.hpp"
 
 using namespace std::chrono_literals;
 
-class GameManager {
-public:
-    enum Feature {
-        RENDERER,
-        SKINCHANGER,
-        BHOP,
-        TBOT,
-        RCS,
-        VISUALS,
-        MAX,
-    };
+struct Feature {
+    using ThreadProc = std::function<void(std::stop_token, const Game &)>;
 
 public:
-    ~GameManager() {
-        join_threads();
-    }
-
-    bool attach_to_game() {
-        utl::clear_console();
-        utl::println(xorstr("[!] Waiting for process..."));
-
-        while (!g::memory->attach(xorstr("csgo.exe"), xorstr("Counter-Strike: Global Offensive - Direct3D 9")))
-            std::this_thread::sleep_for(2000ms);
-        while (!g::memory->find_modules())
-            std::this_thread::sleep_for(2000ms);
-
-        utl::println(xorstr("[+] Game window: {}"), fmt::ptr(g::memory->window));
-        utl::println(xorstr("[+] Attached to PID {}: {}"),
-            g::memory->process_id, fmt::ptr(g::memory->process.get()));
-        utl::println(xorstr("[+] Found module \"engine.dll\": {:#x}"),
-            g::memory->engine_dll.get_image_base());
-        utl::println(xorstr("[+] Found module \"client.dll\": {:#x}"),
-            g::memory->client_dll.get_image_base());
-
-        if (!g::offsets->initialize()) {
-            utl::println(xorstr("[-] Failed to obtain offsets!"));
-            return false;
-        }
-
-        if (g::config->exists()) {
-            g::config->load_all();
-        } else {
-            g::config->save_all();
-        }
-        return true;
-    }
-
-    void detach_from_game() {
-        utl::println("");
-        Beep(900, 500);
-
-        join_threads();
-        g::memory->detach();
-    }
-
-    void join_threads() {
-        for (auto &thread : m_threads) {
-            if (thread.joinable()) {
-                thread.request_stop();
-                thread.join();
-            }
+    Feature(const Game &game, ThreadProc proc, bool start)
+        : thread_proc(proc), thr(std::nullopt)
+    {
+        if (start) {
+            this->start(game);
         }
     }
 
-    void toggle_feature(Feature feature, bool option) {
-#define START_THREAD(fn) m_threads[feature] = std::jthread([] (std::stop_token token) { (fn)(token); })
-        if (option) {
-            switch (feature) {
-            case Feature::RENDERER:
-                START_THREAD(g::render->thread_proc);
-                break;
-            case Feature::VISUALS:
-                m_threads[feature] = std::jthread(visuals::thread_proc);
-                break;
-            case Feature::BHOP:
-                m_threads[feature] = std::jthread(player::bhop_thread_proc);
-                break;
-            case Feature::TBOT:
-                m_threads[feature] = std::jthread(player::tbot_thread_proc);
-                break;
-            case Feature::RCS:
-                m_threads[feature] = std::jthread(player::rcs_thread_proc);
-                break;
-            case Feature::SKINCHANGER:
-                m_threads[feature] = std::jthread(skin_changer::thread_proc);
-                break;
-            }
-        } else if (m_threads[feature].joinable()) {
-            m_threads[feature].request_stop();
-            m_threads[feature].join();
+    ~Feature() {
+        stop();
+    }
+
+    void start(const Game &game) {
+        thr = std::jthread(thread_proc, std::ref(game));
+    }
+
+    void stop() {
+        if (thr.has_value()) {
+            thr->request_stop();
+            thr->join();
+            thr = std::nullopt;
         }
-#undef START_THREAD
     }
 
 private:
-    std::array<std::jthread, Feature::MAX> m_threads{};
+    ThreadProc thread_proc;
+    std::optional<std::jthread> thr;
 
 };
 
 namespace {
-    void print_menu() {
+    void print_menu(const Options &options) {
     #define IFENABLED(x) x ? xorstr("enabled ") : xorstr("disabled")
     #define VK2STR(x)    utl::vk_to_string(x)
 
         utl::clear_console();
         utl::println(xorstr("\tGewehr (Built on {} at {})\n"), xorstr(__DATE__), xorstr(__TIME__));
-        utl::println(xorstr("close:          {}"), VK2STR(g::options->exit_key));
-        utl::println(xorstr("refresh config: {}\n"), VK2STR(g::options->refresh_cfg_key));
-        utl::println(xorstr("skinchanger:    {}"), IFENABLED(g::options->skins_enabled));
-        utl::println(xorstr("esp:            {} [{}]"), IFENABLED(g::options->esp_enabled), VK2STR(g::options->esp_toggle_key));
-        utl::println(xorstr("bhop:           {} [{}]"), IFENABLED(g::options->bhop_enabled), VK2STR(g::options->bhop_toggle_key));
+        utl::println(xorstr("close:          {}"), VK2STR(options.exit_key));
+        utl::println(xorstr("refresh config: {}\n"), VK2STR(options.refresh_cfg_key));
+        utl::println(xorstr("skinchanger:    {}"), IFENABLED(options.skins_enabled));
+        utl::println(xorstr("esp:            {} [{}]"), IFENABLED(options.esp_enabled), VK2STR(options.esp_toggle_key));
+        utl::println(xorstr("bhop:           {} [{}]"), IFENABLED(options.bhop_enabled), VK2STR(options.bhop_toggle_key));
         utl::println(xorstr("visuals:        {} [{}] (glow {}, chams {})"),
-            IFENABLED(g::options->visuals_enabled), VK2STR(g::options->visuals_toggle_key),
-            IFENABLED(g::options->glow_enabled), IFENABLED(g::options->chams_enabled));
-        utl::println(xorstr("rcs:            {} [{}] (X: {:.2}, Y: {:.2}, after {} shots)"), IFENABLED(g::options->rcs_enabled),
-            VK2STR(g::options->rcs_toggle_key), g::options->rcs_strength_x, g::options->rcs_strength_y, g::options->rcs_after_shots);
-        utl::println(xorstr("triggerbot:     {} [{}] ({} ms, hold {})"), IFENABLED(g::options->trigger_enabled),
-            VK2STR(g::options->trigger_toggle_key), g::options->trigger_delay, VK2STR(g::options->trigger_key));
+            IFENABLED(options.visuals_enabled), VK2STR(options.visuals_toggle_key),
+            IFENABLED(options.glow_enabled), IFENABLED(options.chams_enabled));
+        utl::println(xorstr("rcs:            {} [{}] (X: {:.2}, Y: {:.2}, after {} shots)"), IFENABLED(options.rcs_enabled),
+            VK2STR(options.rcs_toggle_key), options.rcs_strength_x, options.rcs_strength_y, options.rcs_after_shots);
+        utl::println(xorstr("triggerbot:     {} [{}] ({} ms, hold {})"), IFENABLED(options.trigger_enabled),
+            VK2STR(options.trigger_toggle_key), options.trigger_delay, VK2STR(options.trigger_key));
 
     #undef IFENABLED
     #undef VK2STR
     }
 
-    DWORD WINAPI main_thread_proc(void *param) {
-        static GameManager manager;
-
+    bool execute() {
         utl::attach_console();
-        if (manager.attach_to_game()) {
-            std::this_thread::sleep_for(1000ms);
-            print_menu();
+        auto _game = Game::init();
+        if (!_game) {
+            return false;
+        }
+        auto &game = _game.value();
+        auto &options = game.options;
+        std::this_thread::sleep_for(1000ms);
+        print_menu(options);
 
-            manager.toggle_feature(GameManager::RENDERER, g::options->esp_enabled);
-            manager.toggle_feature(GameManager::VISUALS, g::options->visuals_enabled);
-            manager.toggle_feature(GameManager::BHOP, g::options->bhop_enabled);
-            manager.toggle_feature(GameManager::RCS, g::options->rcs_enabled);
-            manager.toggle_feature(GameManager::TBOT, g::options->trigger_enabled);
-            manager.toggle_feature(GameManager::SKINCHANGER, g::options->skins_enabled);
+        std::array<Feature, 6> features{
+            Feature(game, [](std::stop_token stop_token, const Game &game) {
+                // g::render->thread_proc(stop_token);
+            }, options.esp_enabled),
+            Feature(game, visuals::thread_proc, options.visuals_enabled),
+            Feature(game, player::bhop_thread_proc, options.bhop_enabled),
+            Feature(game, player::rcs_thread_proc, options.rcs_enabled),
+            Feature(game, player::tbot_thread_proc, options.trigger_enabled),
+            Feature(game, skin_changer::thread_proc, options.skins_enabled),
+        };
 
-            while (!utl::is_key_down(g::options->exit_key)) {
-    #define TOGGLE_KEY(feature, key, enabled) \
+        while (!utl::is_key_down(options.exit_key)) {
+#define TOGGLE_KEY(feature, key, enabled) \
         do { \
             if (utl::is_key_down(key)) {\
-                manager.toggle_feature(feature, (enabled) = !(enabled)); \
+                if (((enabled) = !(enabled))) {\
+                    features[feature].start(game);\
+                } else {\
+                    features[feature].stop();\
+                }\
                 Beep((enabled) ? 1000 : 900, 250); \
-                print_menu(); \
+                print_menu(options); \
             } \
     } while (false)
-                
-                TOGGLE_KEY(GameManager::VISUALS, g::options->visuals_toggle_key, g::options->visuals_enabled);
-                TOGGLE_KEY(GameManager::BHOP, g::options->bhop_toggle_key, g::options->bhop_enabled);
-                TOGGLE_KEY(GameManager::RCS, g::options->rcs_toggle_key, g::options->rcs_enabled);
-                TOGGLE_KEY(GameManager::TBOT, g::options->trigger_toggle_key, g::options->trigger_enabled);
-                TOGGLE_KEY(GameManager::RENDERER, g::options->esp_toggle_key, g::options->esp_enabled);
-                
-    #undef TOGGLE_KEY
 
-                if (utl::is_key_down(g::options->refresh_cfg_key)) {
-                    Beep(900, 400);
-                    g::config->load_all();
-                    print_menu();
+            TOGGLE_KEY(0, options.esp_toggle_key, options.esp_enabled);
+            TOGGLE_KEY(1, options.visuals_toggle_key, options.visuals_enabled);
+            TOGGLE_KEY(2, options.bhop_toggle_key, options.bhop_enabled);
+            TOGGLE_KEY(3, options.rcs_toggle_key, options.rcs_enabled);
+            TOGGLE_KEY(4, options.trigger_toggle_key, options.trigger_enabled);
+
+#undef TOGGLE_KEY
+
+            if (utl::is_key_down(options.refresh_cfg_key)) {
+                Beep(900, 400);
+                game.reload_config();
+                print_menu(game.options);
+            }
+
+            DWORD code = 0;
+            if (GetExitCodeProcess(game.mem.process.get(), &code)) {
+                if (code != STILL_ACTIVE) {
+                    return true;
                 }
+            }
 
-                DWORD code = 0;
-                if (GetExitCodeProcess(g::memory->process.get(), &code)) {
-                    if (code != STILL_ACTIVE) {
-                        manager.detach_from_game();
-                        return main_thread_proc(param);
-                    }
-                }
+            std::this_thread::sleep_for(500ms);
+        }
 
-                std::this_thread::sleep_for(500ms);
+        utl::println("");
+        Beep(900, 500);
+        return false;
+    }
+
+    DWORD WINAPI main_thread_proc(void *hModule) {
+        while (true) {
+            if (!execute()) {
+                break;
             }
         }
 
-        manager.detach_from_game();
-        FreeLibraryAndExitThread(static_cast<HINSTANCE>(param), 0);
+        FreeLibraryAndExitThread(static_cast<HINSTANCE>(hModule), 0);
         return 0;
     }
 
     BOOL WINAPI dll_exit() {
-        g::memory->detach();
         utl::detach_console();
     #ifdef _DEBUG
         ExitProcess(0);

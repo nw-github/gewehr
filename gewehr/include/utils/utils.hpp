@@ -2,7 +2,7 @@
 #include "memory.hpp"
 
 namespace netvars {
-    DWORD find(DWORD dwStart, LPCSTR lpClassName, LPCSTR lpVarName);
+    DWORD find(const Memory& mem, DWORD dwStart, LPCSTR lpClassName, LPCSTR lpVarName);
 }
 
 namespace utl {
@@ -17,25 +17,21 @@ namespace utl {
 
 #ifndef _DEBUG
     template<typename... Args>
-    void println(std::string_view fmt, Args &&...args)
-    {
+    void println(std::string_view fmt, Args &&...args) {
         std::cout << fmt::vformat(fmt, fmt::make_format_args(std::forward<Args>(args)...)) << '\n';
     }
 #else
     template<typename... Args>
-    void println(fmt::format_string<Args...> fmt, Args &&...args)
-    {
+    void println(fmt::format_string<Args...> fmt, Args &&...args) {
         std::cout << fmt::format(fmt, std::forward<Args>(args)...) << '\n';
     }
 #endif
 
-    inline bool is_csgo_focused()
-    {
-        return GetForegroundWindow() == g::memory->window;
+    inline bool is_csgo_focused(const Memory &mem) {
+        return GetForegroundWindow() == mem.window;
     }
 
-    inline bool is_key_down(int key)
-    {
+    inline bool is_key_down(int key) {
         return GetAsyncKeyState(key);
     }
 }

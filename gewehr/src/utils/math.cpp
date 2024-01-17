@@ -29,16 +29,15 @@ QAngle m::calc_angle(const Vector& src, const Vector& dst)
 {
     Vector delta((src.x - dst.x), (src.y - dst.y), (src.z - dst.z));
     float hyp = sqrt(delta.x * delta.x + delta.y * delta.y);
-    QAngle vAngle(
+    QAngle angle(
         atanf(delta.z / hyp) * 57.295779513082f,
         atanf(delta.y / delta.x) * 57.295779513082f,
         0.0f
     );
 
     if (delta.x >= 0.0)
-        vAngle.yaw += 180.0f;
-
-    return vAngle;
+        angle.yaw += 180.0f;
+    return angle;
 }
 
 void m::clamp_angles(QAngle &angles)
@@ -48,20 +47,21 @@ void m::clamp_angles(QAngle &angles)
     angles.roll  = 0.f;
 }
 
-bool m::world_to_screen(const Vector& origin, Vector& screen, const matrix4x4_t& wts_matrix)
-{
-    const float width = wts_matrix[3][0] * origin.x + wts_matrix[3][1] * origin.y + wts_matrix[3][2] * origin.z + wts_matrix[3][3];
-    if (width < 0.001f)
-        return false;
-
-    // compute the scene coordinates of a point in 3d
-    const float inverse = 1.0f / width;
-    screen.x = (wts_matrix[0][0] * origin.x + wts_matrix[0][1] * origin.y + wts_matrix[0][2] * origin.z + wts_matrix[0][3]) * inverse;
-    screen.y = (wts_matrix[1][0] * origin.x + wts_matrix[1][1] * origin.y + wts_matrix[1][2] * origin.z + wts_matrix[1][3]) * inverse;
-
-    // screen transform
-    // get the screen position in pixels of given point
-    screen.x = (g::render->get_resolution().x * 0.5f) + (screen.x * g::render->get_resolution().x) * 0.5f;
-    screen.y = (g::render->get_resolution().y * 0.5f) - (screen.y * g::render->get_resolution().y) * 0.5f;
-    return true;
-}
+// std::optional<Vector> m::world_to_screen(const Vector& origin, const matrix4x4_t& wts_matrix)
+// {
+//     const float width = wts_matrix[3][0] * origin.x + wts_matrix[3][1] * origin.y + wts_matrix[3][2] * origin.z + wts_matrix[3][3];
+//     if (width < 0.001f)
+//         return std::nullopt;
+// 
+//     // compute the scene coordinates of a point in 3d
+//     const float inverse = 1.0f / width;
+//     const float x = (wts_matrix[0][0] * origin.x + wts_matrix[0][1] * origin.y + wts_matrix[0][2] * origin.z + wts_matrix[0][3]) * inverse;
+//     const float y = (wts_matrix[1][0] * origin.x + wts_matrix[1][1] * origin.y + wts_matrix[1][2] * origin.z + wts_matrix[1][3]) * inverse;
+//     // screen transform
+//     // get the screen position in pixels of given point
+//     return Vector{
+//         (g::render->get_resolution().x * 0.5f) + (x * g::render->get_resolution().x) * 0.5f,
+//         (g::render->get_resolution().y * 0.5f) - (y * g::render->get_resolution().y) * 0.5f,
+//         0.f,
+//     };
+// }

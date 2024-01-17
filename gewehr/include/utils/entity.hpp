@@ -1,5 +1,8 @@
 #pragma once
 
+#include "utils/memory.hpp"
+#include "utils/offsets.hpp"
+
 class QAngle;
 class Vector;
 
@@ -8,8 +11,7 @@ class BasePlayer
 public:
     DWORD m_dwBaseAddr;
 
-    BasePlayer();
-    BasePlayer(int ent_index);
+    BasePlayer(const Memory &mem, const Offsets &offsets, int ent_index);
 
 public:
     operator bool() const { return m_dwBaseAddr != 0; }
@@ -29,16 +31,24 @@ public:
     Vector m_vecViewOffset();
     Vector GetEyePos();
     Vector GetBonePos(int bone);
+
+protected:
+    const Memory &mem;
+    const Offsets &offsets;
+
+protected:
+    BasePlayer(const Memory &mem, const Offsets &offsets)
+        : mem(mem), offsets(offsets), m_dwBaseAddr(0)
+    { }
+
 };
 
 class LocalPlayer : public BasePlayer
 {
 public:
-    LocalPlayer();
+    LocalPlayer(const Memory &mem, const Offsets &offsets);
 
 public:
-    void Update();
-
     QAngle GetViewAngles();
     int EntIndex();
     int m_iFOV();

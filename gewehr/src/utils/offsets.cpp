@@ -46,15 +46,23 @@ namespace {
     }
 }
 
+std::optional<Offsets> Offsets::init(const Memory& mem) {
+    Offsets offsets;
+    if (!offsets.initialize(mem)) {
+        return std::nullopt;
+    }
 
-bool Offsets::initialize()
+    return offsets;
+}
+
+bool Offsets::initialize(const Memory& mem)
 {
     utl::println(xorstr("\n[!] Scanning signatures..."));
 
-    DWORD engine_base = g::memory->engine_dll.get_image_base();
+    DWORD engine_base = mem.engine_dll.get_image_base();
 
-    std::vector<BYTE> engine(g::memory->engine_dll.get_image_size(), '\0');
-    if (!g::memory->read(engine_base, engine.data(), engine.size()))
+    std::vector<BYTE> engine(mem.engine_dll.get_image_size(), '\0');
+    if (!mem.read(engine_base, engine.data(), engine.size()))
         return false;
 
     // F3 0F 11 80 ? ? ? ? F3 0F 10 44 24 38
@@ -76,10 +84,10 @@ bool Offsets::initialize()
     
     //-------------------------------------------------------------------------------------------
 
-    DWORD client_base = g::memory->client_dll.get_image_base();
+    DWORD client_base = mem.client_dll.get_image_base();
 
-    std::vector<BYTE> client(g::memory->client_dll.get_image_size(), '\0');
-    if (!g::memory->read(client_base, client.data(), client.size()))
+    std::vector<BYTE> client(mem.client_dll.get_image_size(), '\0');
+    if (!mem.read(client_base, client.data(), client.size()))
         return false;
 
     dwEntityList = find_pattern(client, client_base,
@@ -132,36 +140,36 @@ bool Offsets::initialize()
     dwGetAllClasses = find_pattern(client, client_base,
         (PBYTE)&dwGetAllClasses, sizeof(PBYTE), 0x0, 0x2B, 0x0, true, false);
     
-    return scan_netvars(dwGetAllClasses);
+    return scan_netvars(mem, dwGetAllClasses);
 }
 
-bool Offsets::scan_netvars(DWORD dwGetAllClasses) {
+bool Offsets::scan_netvars(const Memory& mem, DWORD dwGetAllClasses) {
     utl::println(xorstr("\n[!] Scanning netvars..."));
 
-    m_fFlags               = netvars::find(dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_fFlags"));
-    m_iCrosshairId         = netvars::find(dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_bHasDefuser")) + 92;
-    m_iGlowIndex           = netvars::find(dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_flFlashDuration")) + 24;
-    m_iShotsFired          = netvars::find(dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_iShotsFired"));
-    m_vecViewOffset        = netvars::find(dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_vecViewOffset[0]"));
-    m_bGunGameImmunity     = netvars::find(dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_bGunGameImmunity"));
-    m_vecVelocity          = netvars::find(dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_vecVelocity[0]"));
-    m_iFOV                 = netvars::find(dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_iFOV"));
-    m_bIsScoped            = netvars::find(dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_bIsScoped"));
-    m_iTeamNum             = netvars::find(dwGetAllClasses, xorstr("DT_BasePlayer")          , xorstr("m_iTeamNum"));
-    m_iHealth              = netvars::find(dwGetAllClasses, xorstr("DT_BasePlayer")          , xorstr("m_iHealth"));
-    m_hViewModel           = netvars::find(dwGetAllClasses, xorstr("DT_BasePlayer")          , xorstr("m_hViewModel[0]"));
-    m_aimPunchAngle        = netvars::find(dwGetAllClasses, xorstr("DT_BasePlayer")          , xorstr("m_aimPunchAngle"));
-    m_vecOrigin            = netvars::find(dwGetAllClasses, xorstr("DT_BasePlayer")          , xorstr("m_vecOrigin"));
-    m_iViewModelIndex      = netvars::find(dwGetAllClasses, xorstr("DT_BaseCombatWeapon")    , xorstr("m_iViewModelIndex"));
-    m_flFallbackWear       = netvars::find(dwGetAllClasses, xorstr("DT_BaseAttributableItem"), xorstr("m_flFallbackWear"));
-    m_nFallbackPaintKit    = netvars::find(dwGetAllClasses, xorstr("DT_BaseAttributableItem"), xorstr("m_nFallbackPaintKit"));
-    m_iItemIDHigh          = netvars::find(dwGetAllClasses, xorstr("DT_BaseAttributableItem"), xorstr("m_iItemIDHigh"));
-    m_iEntityQuality       = netvars::find(dwGetAllClasses, xorstr("DT_BaseAttributableItem"), xorstr("m_iEntityQuality"));
-    m_iItemDefinitionIndex = netvars::find(dwGetAllClasses, xorstr("DT_BaseAttributableItem"), xorstr("m_iItemDefinitionIndex"));
-    m_hActiveWeapon        = netvars::find(dwGetAllClasses, xorstr("DT_BaseCombatCharacter") , xorstr("m_hActiveWeapon"));
-    m_hMyWeapons           = netvars::find(dwGetAllClasses, xorstr("DT_BaseCombatCharacter") , xorstr("m_hMyWeapons"));
-    m_nModelIndex          = netvars::find(dwGetAllClasses, xorstr("DT_BaseViewModel")       , xorstr("m_nModelIndex"));
-    m_dwBoneMatrix         = netvars::find(dwGetAllClasses, xorstr("DT_BaseAnimating")       , xorstr("m_nForceBone")) + 28;
+    m_fFlags               = netvars::find(mem, dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_fFlags"));
+    m_iCrosshairId         = netvars::find(mem, dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_bHasDefuser")) + 92;
+    m_iGlowIndex           = netvars::find(mem, dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_flFlashDuration")) + 24;
+    m_iShotsFired          = netvars::find(mem, dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_iShotsFired"));
+    m_vecViewOffset        = netvars::find(mem, dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_vecViewOffset[0]"));
+    m_bGunGameImmunity     = netvars::find(mem, dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_bGunGameImmunity"));
+    m_vecVelocity          = netvars::find(mem, dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_vecVelocity[0]"));
+    m_iFOV                 = netvars::find(mem, dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_iFOV"));
+    m_bIsScoped            = netvars::find(mem, dwGetAllClasses, xorstr("DT_CSPlayer")            , xorstr("m_bIsScoped"));
+    m_iTeamNum             = netvars::find(mem, dwGetAllClasses, xorstr("DT_BasePlayer")          , xorstr("m_iTeamNum"));
+    m_iHealth              = netvars::find(mem, dwGetAllClasses, xorstr("DT_BasePlayer")          , xorstr("m_iHealth"));
+    m_hViewModel           = netvars::find(mem, dwGetAllClasses, xorstr("DT_BasePlayer")          , xorstr("m_hViewModel[0]"));
+    m_aimPunchAngle        = netvars::find(mem, dwGetAllClasses, xorstr("DT_BasePlayer")          , xorstr("m_aimPunchAngle"));
+    m_vecOrigin            = netvars::find(mem, dwGetAllClasses, xorstr("DT_BasePlayer")          , xorstr("m_vecOrigin"));
+    m_iViewModelIndex      = netvars::find(mem, dwGetAllClasses, xorstr("DT_BaseCombatWeapon")    , xorstr("m_iViewModelIndex"));
+    m_flFallbackWear       = netvars::find(mem, dwGetAllClasses, xorstr("DT_BaseAttributableItem"), xorstr("m_flFallbackWear"));
+    m_nFallbackPaintKit    = netvars::find(mem, dwGetAllClasses, xorstr("DT_BaseAttributableItem"), xorstr("m_nFallbackPaintKit"));
+    m_iItemIDHigh          = netvars::find(mem, dwGetAllClasses, xorstr("DT_BaseAttributableItem"), xorstr("m_iItemIDHigh"));
+    m_iEntityQuality       = netvars::find(mem, dwGetAllClasses, xorstr("DT_BaseAttributableItem"), xorstr("m_iEntityQuality"));
+    m_iItemDefinitionIndex = netvars::find(mem, dwGetAllClasses, xorstr("DT_BaseAttributableItem"), xorstr("m_iItemDefinitionIndex"));
+    m_hActiveWeapon        = netvars::find(mem, dwGetAllClasses, xorstr("DT_BaseCombatCharacter") , xorstr("m_hActiveWeapon"));
+    m_hMyWeapons           = netvars::find(mem, dwGetAllClasses, xorstr("DT_BaseCombatCharacter") , xorstr("m_hMyWeapons"));
+    m_nModelIndex          = netvars::find(mem, dwGetAllClasses, xorstr("DT_BaseViewModel")       , xorstr("m_nModelIndex"));
+    m_dwBoneMatrix         = netvars::find(mem, dwGetAllClasses, xorstr("DT_BaseAnimating")       , xorstr("m_nForceBone")) + 28;
 
     utl::println(xorstr("[+] m_fFlags: {:#x}")              , m_fFlags);
     utl::println(xorstr("[+] m_iCrosshairId: {:#x}")        , m_iCrosshairId);

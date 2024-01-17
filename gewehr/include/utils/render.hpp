@@ -2,17 +2,7 @@
 #include <d3d11.h>
 #pragma comment(lib, "D3D11.lib")
 
-struct Color
-{
-    BYTE r, g, b, a;
-
-    Color()
-        : r{0}, g{0}, b{0}, a{255}
-    { }
-    Color(BYTE r, BYTE g, BYTE b, BYTE a = 255)
-        : r{r}, g{g}, b{b}, a{a}
-    { }
-};
+#include "utils/config.hpp"
 
 struct DrawListItem
 {
@@ -85,8 +75,3 @@ private:
     std::queue<DrawListItem>  m_draw_list;
 
 };
-
-namespace g
-{
-    inline std::unique_ptr<::Renderer> render = std::make_unique<::Renderer>();
-}

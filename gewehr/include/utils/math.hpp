@@ -24,9 +24,9 @@ namespace m
         vec[2] = 0.f;
     }
 
-    Vector   angle_vectors(const QAngle& angles);
-    float  get_fov(const QAngle& view_angle, const QAngle& aim_angle);
+    Vector angle_vectors(const QAngle& angles);
+    float get_fov(const QAngle& view_angle, const QAngle& aim_angle);
     QAngle calc_angle(const Vector& src, const Vector& dst);
-    void   clamp_angles(QAngle& angles);
-    bool   world_to_screen(const Vector& origin, Vector& screen, const matrix4x4_t& wts_matrix);
+    void clamp_angles(QAngle& angles);
+    // std::optional<Vector> world_to_screen(const Vector& origin, const matrix4x4_t& wts_matrix);
 }

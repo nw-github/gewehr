@@ -12,16 +12,16 @@ LRESULT CALLBACK Renderer::window_proc(HWND hwnd, UINT msg, WPARAM wParam, LPARA
     auto self = reinterpret_cast<Renderer *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
     if ((GetWindowLong(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST) == 0)
     {
-        RECT bounding;
-        GetWindowRect(g::memory->window, &bounding);
-        SetWindowPos(
-            g::memory->window,
-            self->m_hwnd,
-            bounding.left,
-            bounding.top,
-            bounding.right - bounding.left,
-            bounding.bottom - bounding.top,
-            0);
+        // RECT bounding;
+        // GetWindowRect(g::memory->window, &bounding);
+        // SetWindowPos(
+        //     g::memory->window,
+        //     self->m_hwnd,
+        //     bounding.left,
+        //     bounding.top,
+        //     bounding.right - bounding.left,
+        //     bounding.bottom - bounding.top,
+        //     0);
     }
 
     switch (msg)
@@ -116,12 +116,12 @@ bool Renderer::initialize(const std::string &class_name, const std::string &wnd_
     if (!RegisterClassExA(&wc))
         return false;
 
-    RECT bounding;
-    GetWindowRect(g::memory->window, &bounding);
-    m_position.x   = bounding.left;
-    m_position.y   = bounding.top;
-    m_resolution.x = bounding.right - bounding.left;
-    m_resolution.y = bounding.bottom - bounding.top;
+    // RECT bounding;
+    // GetWindowRect(g::memory->window, &bounding);
+    // m_position.x   = bounding.left;
+    // m_position.y   = bounding.top;
+    // m_resolution.x = bounding.right - bounding.left;
+    // m_resolution.y = bounding.bottom - bounding.top;
 
     DWORD style = WS_EX_TOOLWINDOW | WS_EX_TRANSPARENT | WS_EX_LAYERED;
     if (topmost)
@@ -178,14 +178,14 @@ void Renderer::render()
         std::swap(draw_list, m_draw_list);
     }
 
-    if (utl::is_csgo_focused())
-    {
-        while (!draw_list.empty())
-        {
-            draw_item(draw_list.front());
-            draw_list.pop();
-        }
-    }
+    // if (utl::is_csgo_focused())
+    // {
+    //     while (!draw_list.empty())
+    //     {
+    //         draw_item(draw_list.front());
+    //         draw_list.pop();
+    //     }
+    // }
 
     m_swapchain->Present(0, 0);
 }
