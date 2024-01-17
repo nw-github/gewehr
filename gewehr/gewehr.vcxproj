@@ -36,7 +36,6 @@
       <SubType>
       </SubType>
     </ClCompile>
-    <ClCompile Include="src\utils\render.cpp" />
     <ClCompile Include="src\utils\utils.cpp">
       <SubType>
       </SubType>
@@ -55,7 +54,6 @@
       <SubType>
       </SubType>
     </ClInclude>
-    <ClInclude Include="include\utils\render.hpp" />
     <ClInclude Include="lib\fmt\args.h" />
     <ClInclude Include="lib\fmt\chrono.h" />
     <ClInclude Include="lib\fmt\color.h" />

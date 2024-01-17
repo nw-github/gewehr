@@ -45,13 +45,11 @@ struct Options {
     SHORT rcs_toggle_key = 0;        // Toggle RCS enabled
     SHORT trigger_toggle_key = 0;    // Toggle triggerbot enabled
     SHORT visuals_toggle_key = VK_F6;
-    SHORT esp_toggle_key = 0;
     // Toggleable 
     bool bhop_enabled = true;        // Is bhop enabled
     bool rcs_enabled = false;        // Is RCS enabled
     bool trigger_enabled = true;     // Is triggerbot enabled
     bool visuals_enabled = false;
-    bool esp_enabled = false;
     // 
     bool glow_enabled = false;
     bool chams_enabled = false;
@@ -97,12 +95,10 @@ bhop_toggle_key,
 rcs_toggle_key,
 trigger_toggle_key,
 visuals_toggle_key,
-esp_toggle_key,
 bhop_enabled,
 rcs_enabled,
 trigger_enabled,
 visuals_enabled,
-esp_enabled,
 glow_enabled,
 chams_enabled,
 skins_enabled,

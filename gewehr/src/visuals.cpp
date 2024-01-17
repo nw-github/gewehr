@@ -5,7 +5,6 @@
 #include "utils/memory.hpp"
 #include "utils/offsets.hpp"
 #include "utils/math.hpp"
-#include "utils/render.hpp"
 #include "utils/entity.hpp"
 
 using namespace std::chrono_literals;
@@ -51,22 +50,6 @@ namespace {
         }
     }
 
-// void render_esp(BasePlayer &player) {
-//    if (!u::is_csgo_focused())
-//        return;
-// 
-//    Vector base, head;
-//    if (!m::world_to_screen(player.m_vecOrigin(), base, m_wts_matrix))
-//        return;
-//    if (!m::world_to_screen(player.GetEyePos(), head, m_wts_matrix))
-//        return;
-// 
-//    int h = head.y - base.y;
-//    int w = h / 2;
-// 
-//    g::render->add_rect(base.x - w / 2, base.y, w, h, D3DCOLOR_ARGB(255, 0, 255, 0));
-// }
-
     void set_chams_brightness(const Game &game) {
         const auto &[mem, offsets, options] = game;
         DWORD self = (DWORD)(mem.engine_dll.get_image_base() + offsets.modelAmbientMin - 0x2c);
@@ -85,7 +68,6 @@ void visuals::thread_proc(std::stop_token token, const Game &game) {
             continue;
 
         DWORD dwGlowObjManager = mem.read<DWORD>(mem.client_dll.get_image_base() + offsets.dwGlowObjManager);
-        // matrix4x4_t view_matrix = mem.read<matrix4x4_t>(mem.client_dll.get_image_base() + offsets.dwViewMatrix);
         for (int i = 1; i < 64; i++) {
             BasePlayer player(game.mem, game.offsets, i);
             if (!player)
@@ -100,9 +82,6 @@ void visuals::thread_proc(std::stop_token token, const Game &game) {
 
             if (options.glow_enabled)
                 apply_glow(game, player, local, dwGlowObjManager);
-
-//             if (options.esp_enabled)
-//                 render_esp(player);
         }
 
         if (options.chams_enabled)

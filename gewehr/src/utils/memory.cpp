@@ -58,7 +58,6 @@ std::optional<Memory> Memory::init(std::string_view proc, std::string_view windo
     }
 
     while (true) {
-        std::this_thread::sleep_for(2000ms);
         const auto engine = find_module(xorstr("engine.dll"), process_id),
             client = find_module(xorstr("client.dll"), process_id);
         if (engine && client) {
@@ -70,6 +69,7 @@ std::optional<Memory> Memory::init(std::string_view proc, std::string_view windo
                 .engine_dll = engine.value(),
             };
         }
+        std::this_thread::sleep_for(2000ms);
     }
 }
 

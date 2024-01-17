@@ -50,7 +50,6 @@ namespace {
         utl::println(xorstr("close:          {}"), VK2STR(options.exit_key));
         utl::println(xorstr("refresh config: {}\n"), VK2STR(options.refresh_cfg_key));
         utl::println(xorstr("skinchanger:    {}"), IFENABLED(options.skins_enabled));
-        utl::println(xorstr("esp:            {} [{}]"), IFENABLED(options.esp_enabled), VK2STR(options.esp_toggle_key));
         utl::println(xorstr("bhop:           {} [{}]"), IFENABLED(options.bhop_enabled), VK2STR(options.bhop_toggle_key));
         utl::println(xorstr("visuals:        {} [{}] (glow {}, chams {})"),
             IFENABLED(options.visuals_enabled), VK2STR(options.visuals_toggle_key),
@@ -75,10 +74,7 @@ namespace {
         std::this_thread::sleep_for(1000ms);
         print_menu(options);
 
-        std::array<Feature, 6> features{
-            Feature(game, [](std::stop_token stop_token, const Game &game) {
-                // g::render->thread_proc(stop_token);
-            }, options.esp_enabled),
+        std::array<Feature, 5> features{
             Feature(game, visuals::thread_proc, options.visuals_enabled),
             Feature(game, player::bhop_thread_proc, options.bhop_enabled),
             Feature(game, player::rcs_thread_proc, options.rcs_enabled),
@@ -100,11 +96,10 @@ namespace {
             } \
     } while (false)
 
-            TOGGLE_KEY(0, options.esp_toggle_key, options.esp_enabled);
-            TOGGLE_KEY(1, options.visuals_toggle_key, options.visuals_enabled);
-            TOGGLE_KEY(2, options.bhop_toggle_key, options.bhop_enabled);
-            TOGGLE_KEY(3, options.rcs_toggle_key, options.rcs_enabled);
-            TOGGLE_KEY(4, options.trigger_toggle_key, options.trigger_enabled);
+            TOGGLE_KEY(0, options.visuals_toggle_key, options.visuals_enabled);
+            TOGGLE_KEY(1, options.bhop_toggle_key, options.bhop_enabled);
+            TOGGLE_KEY(2, options.rcs_toggle_key, options.rcs_enabled);
+            TOGGLE_KEY(3, options.trigger_toggle_key, options.trigger_enabled);
 
 #undef TOGGLE_KEY
 
