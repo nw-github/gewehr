@@ -4,26 +4,24 @@
 
 #include "utils/render.hpp"
 
-void m::angle_vectors(const QAngle& angles, Vector& forward)
-{
-    //SinCos(DEG2RAD(angles[1]), &sy, &cy);
-    float sy = sinf(angles.yaw * 4.0f * atanf(1.0f) / 180.0f);
-    float cy = cosf(angles.yaw * 4.0f * atanf(1.0f) / 180.0f);
-    //SinCos(DEG2RAD(angles[0]), &sp, &cp);
-    float sp = sinf(angles.pitch * 4.0f * atanf(1.0f) / 180.0f);
-    float cp = cosf(angles.pitch * 4.0f * atanf(1.0f) / 180.0f);
+namespace {
+    std::pair<float, float> sin_cos(float x) {
+        return {sinf(x), cosf(x)};
+    }
+}
 
-    forward.x = cp * cy;
-    forward.y = cp * sy;
-    forward.z = -sp;
+Vector m::angle_vectors(const QAngle& angles) {
+    //SinCos(DEG2RAD(angles[1]), &sy, &cy);
+    auto [sy, cy] = sin_cos(angles.yaw * 4.0f * atanf(1.0f) / 180.0f);
+    //SinCos(DEG2RAD(angles[0]), &sp, &cp);
+    auto [sp, cp] = sin_cos(angles.pitch * 4.0f * atanf(1.0f) / 180.0f);
+    return Vector{ cp * cy , cp * sy , -sp };
 }
 
 float m::get_fov(const QAngle& view_angle, const QAngle& aim_angle)
 {
-    Vector ang, aim;
-    angle_vectors(view_angle, aim);
-    angle_vectors(aim_angle, ang);
-
+    Vector aim = angle_vectors(view_angle);
+    Vector ang = angle_vectors(aim_angle);
     return RAD2DEG(acos(aim.Dot(ang) / aim.LengthSqr()));
 }
 

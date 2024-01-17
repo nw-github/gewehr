@@ -11,19 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\player.cpp" />
+    <ClCompile Include="src\skinchanger.cpp" />
     <ClCompile Include="src\utils\config.cpp">
-      <SubType>
-      </SubType>
-    </ClCompile>
-    <ClCompile Include="src\features\player.cpp">
-      <SubType>
-      </SubType>
-    </ClCompile>
-    <ClCompile Include="src\features\skinchanger.cpp">
-      <SubType>
-      </SubType>
-    </ClCompile>
-    <ClCompile Include="src\features\visuals.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -55,8 +45,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="src\visuals.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\features.hpp" />
     <ClInclude Include="include\utils\config.hpp">
       <SubType>
       </SubType>
@@ -141,18 +133,6 @@
     <ClInclude Include="lib\wil\wistd_memory.h" />
     <ClInclude Include="lib\wil\wistd_type_traits.h" />
     <ClInclude Include="lib\wil\wrl.h" />
-    <ClInclude Include="include\features\player.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
-    <ClInclude Include="include\features\skinchanger.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
-    <ClInclude Include="include\features\visuals.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
     <ClInclude Include="include\stdafx.h">
       <SubType>
       </SubType>
@@ -182,10 +162,6 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="lib\valve_sdk\matrix.hpp" />
-    <ClInclude Include="include\utils\netvars.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
     <ClInclude Include="lib\valve_sdk\qangle.hpp">
       <SubType>
       </SubType>

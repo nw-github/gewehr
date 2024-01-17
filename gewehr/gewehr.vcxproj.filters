@@ -18,15 +18,6 @@
     <ClCompile Include="src\utils\config.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\features\player.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\features\skinchanger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\features\visuals.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -54,6 +45,15 @@
     <ClCompile Include="src\utils\render.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\player.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\skinchanger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\visuals.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\xorstr.hpp">
@@ -63,15 +63,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\stdafx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\features\player.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\features\skinchanger.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\features\visuals.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\utils\memory.hpp">
@@ -93,9 +84,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lib\valve_sdk\enums.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\utils\netvars.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lib\valve_sdk\structs.hpp">
@@ -354,6 +342,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="lib\fmt\xchar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\features.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

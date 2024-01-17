@@ -4,14 +4,10 @@
 #include <nlohmann/json.hpp>
 #pragma warning(pop)
 
-#include "../features/skinchanger.hpp"
 #include "../utils/render.hpp"
 #include "../utils/utils.hpp"
 
 #define FOLDER_NAME xorstr(".gw")
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WeaponSkin, name, id, kit, wear);
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Color, r, g, b, a);
 
 class IOption {
 public:
@@ -35,7 +31,7 @@ public:
             if (js.count(name))
                 value = js[name].get<T>();
         } catch (const std::exception &ex) {
-            utl::write_line("Error loading option '{}': {}", name.c_str(), ex.what());
+            utl::println("Error loading option '{}': {}", name.c_str(), ex.what());
             return;
         }
     }
@@ -72,6 +68,25 @@ private:
     std::vector<std::unique_ptr<IOption>> m_options;
 
 };
+
+struct WeaponSkin {
+    std::string name;
+    SHORT       id{0};
+    UINT        kit{0};
+    float       wear{0.0001f};
+
+public:
+    WeaponSkin() = default;
+
+    WeaponSkin(const char* name, SHORT weapon_id, UINT paint_kit, float fallback_wear)
+        : name{ name }, id{ weapon_id }
+        , kit{ paint_kit }, wear{ fallback_wear }
+    { }
+
+};
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WeaponSkin, name, id, kit, wear);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Color, r, g, b, a);
 
 namespace g
 {

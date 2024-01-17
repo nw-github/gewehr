@@ -7,8 +7,7 @@
 #define ADD_OPTION(ty, name, def)        ty &name = g::config->add_option(new Option<ty>(xorstr(#name), def))
 #define ADD_BRACE_OPTION(ty, name, ...) ty &name = g::config->add_option(new Option<ty>(xorstr(#name), { __VA_ARGS__ }))
 
-struct Options
-{
+struct Options {
     // Global settings
     ADD_OPTION(SHORT, exit_key, VK_END);
     ADD_OPTION(SHORT, refresh_cfg_key, VK_F10);

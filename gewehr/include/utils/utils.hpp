@@ -1,8 +1,11 @@
 #pragma once
 #include "memory.hpp"
 
-namespace utl
-{
+namespace netvars {
+    DWORD find(DWORD dwStart, LPCSTR lpClassName, LPCSTR lpVarName);
+}
+
+namespace utl {
     void attach_console();
     void detach_console();
     void clear_console();
@@ -12,18 +15,15 @@ namespace utl
     // random number from low to high, inclusive on both ends
     int randint(int low, int high);
 
-    DWORD find_pattern(const std::vector<BYTE> &buffer, DWORD module_base, const BYTE *pattern, UINT length,
-        BYTE wildcard, UINT offset, UINT uExtra, bool relative, bool subtract);
-
 #ifndef _DEBUG
     template<typename... Args>
-    void write_line(std::string_view fmt, Args &&...args)
+    void println(std::string_view fmt, Args &&...args)
     {
         std::cout << fmt::vformat(fmt, fmt::make_format_args(std::forward<Args>(args)...)) << '\n';
     }
 #else
     template<typename... Args>
-    void write_line(fmt::format_string<Args...> fmt, Args &&...args)
+    void println(fmt::format_string<Args...> fmt, Args &&...args)
     {
         std::cout << fmt::format(fmt, std::forward<Args>(args)...) << '\n';
     }

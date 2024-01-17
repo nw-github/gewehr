@@ -1,14 +1,39 @@
 #include <stdafx.h>
 
-#include "features/skinchanger.hpp"
+#include "features.hpp"
 
 #include "utils/options.hpp"
 #include "utils/memory.hpp"
 #include "utils/offsets.hpp"
 
+// credits: xSkins [https://github.com/0xf1a/xSkins]
+
 using namespace std::chrono_literals;
 
-static UINT get_model_idx_by_name(const char* name) {
+namespace {
+constexpr short KNIFE_IDS[19] = {
+    WEAPON_KNIFE_BAYONET,
+    WEAPON_KNIFE_FLIP,
+    WEAPON_KNIFE_GUT,
+    WEAPON_KNIFE_KARAMBIT,
+    WEAPON_KNIFE_M9_BAYONET,
+    WEAPON_KNIFE_TACTICAL,
+    WEAPON_KNIFE_FALCHION,
+    WEAPON_KNIFE_SURVIVAL_BOWIE,
+    WEAPON_KNIFE_BUTTERFLY,
+    WEAPON_KNIFE_PUSH,
+    WEAPON_KNIFE_URSUS,
+    WEAPON_KNIFE_GYPSY_JACKKNIFE,
+    WEAPON_KNIFE_STILETTO,
+    WEAPON_KNIFE_WIDOWMAKER,
+    WEAPON_KNIFE_CSS,
+    WEAPON_KNIFE_CORD,
+    WEAPON_KNIFE_CANIS,
+    WEAPON_KNIFE_OUTDOOR,
+    WEAPON_KNIFE_SKELETON
+};
+
+UINT get_model_idx_by_name(const char* name) {
     DWORD cstate = g::memory->read<DWORD>(g::offsets->dwClientState);
     DWORD nst    = g::memory->read<DWORD>(cstate + g::offsets->m_dwModelPrecache); // CClientState + 0x529C -> INetworkStringTable* m_pModelPrecacheTable
     DWORD nsd    = g::memory->read<DWORD>(nst + 0x40);                             // INetworkStringTable + 0x40 -> INetworkStringDict* m_pItems
@@ -25,7 +50,7 @@ static UINT get_model_idx_by_name(const char* name) {
     return 0;
 }
 
-static UINT get_model_idx(const short itemIndex) {
+UINT get_model_idx(const short itemIndex) {
     switch (itemIndex) {
     case WEAPON_KNIFE:
         return get_model_idx_by_name(xorstr("models/weapons/v_knife_default_ct.mdl"));
@@ -74,13 +99,21 @@ static UINT get_model_idx(const short itemIndex) {
     }
 }
 
-void SkinChanger::thread_proc(std::stop_token token) {
+WeaponSkin get_weapon_skin(const short item_idx) {
+    std::scoped_lock lock{g::config->m_load_mutex};
+    if (g::options->skin_map.count(item_idx))
+        return g::options->skin_map[item_idx];
+    return WeaponSkin("", item_idx, 0, 0.0001f);
+}
+}
+
+void skin_changer::thread_proc(std::stop_token token) {
     const int itemIDHigh    = -1;
     const int entityQuality = 3;
 
     UINT modelIndex = 0;
     DWORD localPlayer = 0;
-    short last_knife_id = knife_ids[g::options->skins_knife_id];
+    short last_knife_id = KNIFE_IDS[g::options->skins_knife_id];
 
     while (!token.stop_requested()) {
         if (g::options->skins_enabled) {
@@ -97,7 +130,7 @@ void SkinChanger::thread_proc(std::stop_token token) {
                 modelIndex = 0;
             }
 
-            short knife_idx = knife_ids[g::options->skins_knife_id];
+            short knife_idx = KNIFE_IDS[g::options->skins_knife_id];
             if (last_knife_id != knife_idx) {
                 modelIndex = 0;
                 last_knife_id = knife_idx;
@@ -155,9 +188,3 @@ void SkinChanger::thread_proc(std::stop_token token) {
     }
 }
 
-WeaponSkin SkinChanger::get_weapon_skin(const short item_idx) {
-    std::scoped_lock lock{g::config->m_load_mutex};
-    if (g::options->skin_map.count(item_idx))
-        return g::options->skin_map[item_idx];
-    return WeaponSkin("", item_idx, 0, 0.0001f);
-}

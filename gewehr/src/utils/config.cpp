@@ -30,7 +30,7 @@ void Config::load_all() {
         if (std::ifstream file{m_configpath})
             file >> js;
     } catch (const std::exception &ex) {
-        utl::write_line("Error loading config file: {}", ex.what());
+        utl::println("Error loading config file: {}", ex.what());
         return;
     }
 

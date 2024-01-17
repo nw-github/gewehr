@@ -1,6 +1,6 @@
 #include <stdafx.h>
 
-#include "utils/netvars.hpp"
+#include "utils/utils.hpp"
 
 #include "utils/memory.hpp"
 
@@ -20,89 +20,90 @@
 #define m_pRecvTable 0xC
 #define m_pNext 0x10
 
-/*
- ** Reversed Source SDK netvar classes
- */
-
-bool NetvarManager::get_prop_name(DWORD dwAddress, PVOID pBuffer)
+namespace
 {
-    DWORD dwNameAddr;
-    return g::memory->read(dwAddress + m_pVarName, &dwNameAddr, sizeof(DWORD)) &&
-        g::memory->read(dwNameAddr, pBuffer, 128);
-}
 
-DWORD NetvarManager::get_data_table(DWORD dwAddress)
-{
-    return g::memory->read<DWORD>(dwAddress + m_pDataTable);
-}
+    /*
+     ** Reversed Source SDK netvar classes
+     */
 
-int NetvarManager::get_offset(DWORD dwAddress)
-{
-    return g::memory->read<int>(dwAddress + m_iOffset);
-}
-
-DWORD NetvarManager::get_prop_by_id(DWORD dwAddress, int iIndex)
-{
-    DWORD dwPropAddr = g::memory->read<DWORD>(dwAddress + m_pProps);
-    return dwPropAddr + nCRecvPropSize * iIndex;
-}
-
-int NetvarManager::get_prop_count(DWORD dwAddress)
-{
-    return g::memory->read<int>(dwAddress + m_nProps);
-}
-
-bool NetvarManager::get_table_name(DWORD dwAddress, PVOID pBuffer)
-{
-    DWORD dwNameAddr;
-    return g::memory->read(dwAddress + m_pNetTableName, &dwNameAddr, sizeof(DWORD)) &&
-        g::memory->read(dwNameAddr, pBuffer, 128);
-}
-
-DWORD NetvarManager::get_table(DWORD dwAddress)
-{
-    return g::memory->read<DWORD>(dwAddress + m_pRecvTable);
-}
-
-DWORD NetvarManager::get_next_class(DWORD dwAddress)
-{
-    return g::memory->read<DWORD>(dwAddress + m_pNext);
-}
-
-/*
-** Netvar scanning functions
-*/
-
-DWORD NetvarManager::scan_table(DWORD dwTableAddr, LPCSTR lpVarName, DWORD dwLevel)
-{
-    for (int i = 0; i < get_prop_count(dwTableAddr); i++)
+    bool get_prop_name(DWORD dwAddress, PVOID pBuffer)
     {
-        DWORD dwPropAddr = get_prop_by_id(dwTableAddr, i);
-        if (!dwPropAddr)
-            continue;
-
-        char szPropName[128] = {0};
-        if (!get_prop_name(dwPropAddr, szPropName) || isdigit(szPropName[0]))
-            continue;
-
-        int iOffset = get_offset(dwPropAddr);
-
-        if (_stricmp(szPropName, lpVarName) == 0)
-            return dwLevel + iOffset;
-
-        DWORD dwTableAddr = get_data_table(dwPropAddr);
-        if (!dwTableAddr)
-            continue;
-
-        DWORD dwResult = scan_table(dwTableAddr, lpVarName, dwLevel + iOffset);
-        if (dwResult)
-            return dwResult;
+        DWORD dwNameAddr;
+        return g::memory->read(dwAddress + m_pVarName, &dwNameAddr, sizeof(DWORD)) &&
+               g::memory->read(dwNameAddr, pBuffer, 128);
     }
 
-    return 0;
+    DWORD get_data_table(DWORD dwAddress)
+    {
+        return g::memory->read<DWORD>(dwAddress + m_pDataTable);
+    }
+
+    int get_offset(DWORD dwAddress)
+    {
+        return g::memory->read<int>(dwAddress + m_iOffset);
+    }
+
+    DWORD get_prop_by_id(DWORD dwAddress, int iIndex)
+    {
+        DWORD dwPropAddr = g::memory->read<DWORD>(dwAddress + m_pProps);
+        return dwPropAddr + nCRecvPropSize * iIndex;
+    }
+
+    int get_prop_count(DWORD dwAddress)
+    {
+        return g::memory->read<int>(dwAddress + m_nProps);
+    }
+
+    bool get_table_name(DWORD dwAddress, PVOID pBuffer)
+    {
+        DWORD dwNameAddr;
+        return g::memory->read(dwAddress + m_pNetTableName, &dwNameAddr, sizeof(DWORD)) &&
+               g::memory->read(dwNameAddr, pBuffer, 128);
+    }
+
+    DWORD get_table(DWORD dwAddress)
+    {
+        return g::memory->read<DWORD>(dwAddress + m_pRecvTable);
+    }
+
+    DWORD get_next_class(DWORD dwAddress)
+    {
+        return g::memory->read<DWORD>(dwAddress + m_pNext);
+    }
+
+    DWORD scan_table(DWORD dwTableAddr, LPCSTR lpVarName, DWORD dwLevel)
+    {
+        for (int i = 0; i < get_prop_count(dwTableAddr); i++)
+        {
+            DWORD dwPropAddr = get_prop_by_id(dwTableAddr, i);
+            if (!dwPropAddr)
+                continue;
+
+            char szPropName[128] = {0};
+            if (!get_prop_name(dwPropAddr, szPropName) || isdigit(szPropName[0]))
+                continue;
+
+            int iOffset = get_offset(dwPropAddr);
+
+            if (_stricmp(szPropName, lpVarName) == 0)
+                return dwLevel + iOffset;
+
+            DWORD dwTableAddr = get_data_table(dwPropAddr);
+            if (!dwTableAddr)
+                continue;
+
+            DWORD dwResult = scan_table(dwTableAddr, lpVarName, dwLevel + iOffset);
+            if (dwResult)
+                return dwResult;
+        }
+
+        return 0;
+    }
+
 }
 
-DWORD NetvarManager::find_netvar(DWORD dwStart, LPCSTR lpClassName, LPCSTR lpVarName)
+DWORD netvars::find(DWORD dwStart, LPCSTR lpClassName, LPCSTR lpVarName)
 {
     for (DWORD dwClass = dwStart; dwClass; dwClass = get_next_class(dwClass))
     {

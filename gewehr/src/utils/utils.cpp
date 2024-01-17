@@ -4,17 +4,6 @@
 
 #include <random>
 
-namespace
-{
-    bool check_pattern(const BYTE *bytes, const BYTE *pattern, UINT length, BYTE wildcard)
-    {
-        for (UINT i = 0; i < length; i++)
-            if (pattern[i] != wildcard && bytes[i] != pattern[i])
-                return false;
-        return true;
-    }
-}
-
 void utl::attach_console()
 {
     ::AllocConsole();
@@ -106,26 +95,3 @@ std::string utl::randstr(int length)
     return str;
 }
 
-DWORD utl::find_pattern(const std::vector<BYTE> &buffer, DWORD module_base, const BYTE *pattern, UINT length,
-    BYTE wildcard, UINT offset, UINT extra, bool relative, bool subtract)
-{
-    auto bytes = buffer.data();
-    DWORD size = buffer.size();
-
-    DWORD dwAddress = 0;
-    for (DWORD i = 0; i < size - length; i++)
-    {
-        if (check_pattern(bytes + i, pattern, length, wildcard))
-        {
-            dwAddress = module_base + i + offset;
-            if (relative)
-                dwAddress = *(DWORD *)(bytes + i + offset);
-            if (subtract)
-                dwAddress -= module_base;
-
-            dwAddress += extra;
-            break;
-        }
-    }
-    return dwAddress;
-}

@@ -24,7 +24,7 @@ namespace m
         vec[2] = 0.f;
     }
 
-    void   angle_vectors(const QAngle& angles, Vector& forward);
+    Vector   angle_vectors(const QAngle& angles);
     float  get_fov(const QAngle& view_angle, const QAngle& aim_angle);
     QAngle calc_angle(const Vector& src, const Vector& dst);
     void   clamp_angles(QAngle& angles);
