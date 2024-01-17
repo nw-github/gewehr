@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\utils\config.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="src\features\player.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="src\features\skinchanger.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="src\features\visuals.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="src\stdafx.cpp">
+      <SubType>
+      </SubType>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdafx.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\utils\math.cpp" />
+    <ClCompile Include="src\utils\memory.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="src\utils\offsets.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="src\utils\render.cpp" />
+    <ClCompile Include="src\utils\utils.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="src\utils\entity.cpp" />
+    <ClCompile Include="src\utils\netvars.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\utils\config.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="lib\fmt\args.h" />
+    <ClInclude Include="lib\fmt\chrono.h" />
+    <ClInclude Include="lib\fmt\color.h" />
+    <ClInclude Include="lib\fmt\compile.h" />
+    <ClInclude Include="lib\fmt\core.h" />
+    <ClInclude Include="lib\fmt\format-inl.h" />
+    <ClInclude Include="lib\fmt\format.h" />
+    <ClInclude Include="lib\fmt\os.h" />
+    <ClInclude Include="lib\fmt\ostream.h" />
+    <ClInclude Include="lib\fmt\printf.h" />
+    <ClInclude Include="lib\fmt\ranges.h" />
+    <ClInclude Include="lib\fmt\std.h" />
+    <ClInclude Include="lib\fmt\xchar.h" />
+    <ClInclude Include="lib\nlohmann\adl_serializer.hpp" />
+    <ClInclude Include="lib\nlohmann\byte_container_with_subtype.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\conversions\from_json.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\conversions\to_chars.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\conversions\to_json.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\exceptions.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\hash.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\input\binary_reader.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\input\input_adapters.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\input\json_sax.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\input\lexer.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\input\parser.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\input\position_t.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\iterators\internal_iterator.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\iterators\iteration_proxy.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\iterators\iterator_traits.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\iterators\iter_impl.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\iterators\json_reverse_iterator.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\iterators\primitive_iterator.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\json_pointer.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\json_ref.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\macro_scope.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\macro_unscope.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\meta\call_std\begin.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\meta\call_std\end.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\meta\cpp_future.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\meta\detected.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\meta\identity_tag.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\meta\is_sax.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\meta\type_traits.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\meta\void_t.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\output\binary_writer.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\output\output_adapters.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\output\serializer.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\string_escape.hpp" />
+    <ClInclude Include="lib\nlohmann\detail\value_t.hpp" />
+    <ClInclude Include="lib\nlohmann\json.hpp" />
+    <ClInclude Include="lib\nlohmann\json_fwd.hpp" />
+    <ClInclude Include="lib\nlohmann\ordered_map.hpp" />
+    <ClInclude Include="lib\nlohmann\thirdparty\hedley\hedley.hpp" />
+    <ClInclude Include="lib\nlohmann\thirdparty\hedley\hedley_undef.hpp" />
+    <ClInclude Include="lib\wil\com.h" />
+    <ClInclude Include="lib\wil\common.h" />
+    <ClInclude Include="lib\wil\com_apartment_variable.h" />
+    <ClInclude Include="lib\wil\cppwinrt.h" />
+    <ClInclude Include="lib\wil\cppwinrt_helpers.h" />
+    <ClInclude Include="lib\wil\cppwinrt_wrl.h" />
+    <ClInclude Include="lib\wil\filesystem.h" />
+    <ClInclude Include="lib\wil\nt_result_macros.h" />
+    <ClInclude Include="lib\wil\registry.h" />
+    <ClInclude Include="lib\wil\resource.h" />
+    <ClInclude Include="lib\wil\result.h" />
+    <ClInclude Include="lib\wil\result_macros.h" />
+    <ClInclude Include="lib\wil\result_originate.h" />
+    <ClInclude Include="lib\wil\rpc_helpers.h" />
+    <ClInclude Include="lib\wil\safecast.h" />
+    <ClInclude Include="lib\wil\stl.h" />
+    <ClInclude Include="lib\wil\token_helpers.h" />
+    <ClInclude Include="lib\wil\Tracelogging.h" />
+    <ClInclude Include="lib\wil\traceloggingconfig.h" />
+    <ClInclude Include="lib\wil\win32_helpers.h" />
+    <ClInclude Include="lib\wil\winrt.h" />
+    <ClInclude Include="lib\wil\wistd_config.h" />
+    <ClInclude Include="lib\wil\wistd_functional.h" />
+    <ClInclude Include="lib\wil\wistd_memory.h" />
+    <ClInclude Include="lib\wil\wistd_type_traits.h" />
+    <ClInclude Include="lib\wil\wrl.h" />
+    <ClInclude Include="include\features\player.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="include\features\skinchanger.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="include\features\visuals.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="include\stdafx.h">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="include\utils\math.hpp" />
+    <ClInclude Include="include\utils\memory.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="include\utils\offsets.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="include\utils\options.hpp" />
+    <ClInclude Include="include\utils\render.hpp" />
+    <ClInclude Include="include\utils\utils.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="lib\xorstr.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="include\utils\entity.hpp" />
+    <ClInclude Include="lib\valve_sdk\enums.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="lib\valve_sdk\matrix.hpp" />
+    <ClInclude Include="include\utils\netvars.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="lib\valve_sdk\qangle.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="lib\valve_sdk\sdk.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="lib\valve_sdk\structs.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="lib\valve_sdk\vector.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{a8e847ac-d0db-4199-9101-350a6b803411}</ProjectGuid>
+    <RootNamespace>gewehr_csgo</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>gewehr</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>gewehr</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)build\bin\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\</IntDir>
+    <TargetName>gewehr</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>lib;include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>lib;include</AdditionalIncludeDirectories>
+      <DebugInformationFormat>None</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
