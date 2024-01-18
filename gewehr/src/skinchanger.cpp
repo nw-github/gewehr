@@ -7,7 +7,8 @@
 
 // credits: xSkins [https://github.com/0xf1a/xSkins]
 
-namespace {
+namespace
+{
     constexpr const short KNIFE_IDS[19] = {
         WEAPON_KNIFE_BAYONET,
         WEAPON_KNIFE_FLIP,
@@ -32,9 +33,9 @@ namespace {
     constexpr const int ITEM_ID_HIGH = -1;
     constexpr const int ENTITY_QUALITY = 3;
 
-    UINT get_model_idx_by_name(const Game &game, const char *name)
+    UINT get_model_idx_by_name(const State &s, const char *name)
     {
-        const auto &[mem, offsets, _] = game;
+        const auto &[mem, offsets, _] = s;
 
         DWORD cstate = mem.read<DWORD>(offsets.dwClientState);
         DWORD nst = mem.read<DWORD>(cstate + offsets.m_dwModelPrecache); // CClientState + 0x529C -> INetworkStringTable* m_pModelPrecacheTable
@@ -53,7 +54,7 @@ namespace {
         return 0;
     }
 
-    UINT get_model_idx(const Game &s, const short itemIndex)
+    UINT get_model_idx(const State &s, const short itemIndex)
     {
         switch (itemIndex)
         {
@@ -104,23 +105,23 @@ namespace {
         }
     }
 
-    WeaponSkin get_weapon_skin(const Options &options, const short item_idx)
+    WeaponSkin get_weapon_skin(const Config &cfg, const short item_idx)
     {
-        if (options.skin_map.count(item_idx))
-            return options.skin_map.at(item_idx);
+        if (cfg.skin_map.count(item_idx))
+            return cfg.skin_map.at(item_idx);
         return WeaponSkin("", item_idx, 0, 0.0001f);
     }
 }
 
-SkinChanger::SkinChanger(const Options &options)
-    : modelIndex(0), localPlayer(0), last_knife_id(KNIFE_IDS[options.skins_knife_id])
+SkinChanger::SkinChanger(const Config &cfg)
+    : modelIndex(0), localPlayer(0), last_knife_id(KNIFE_IDS[cfg.skins_knife_id])
 {
 }
 
-void SkinChanger::tick(const std::stop_token &token, const Game &game)
+void SkinChanger::tick(const std::stop_token &token, const State &s)
 {
-    const auto &[mem, offsets, options] = game;
-    if (!options.skins_enabled)
+    const auto &[mem, offsets, cfg] = s;
+    if (!cfg.skins_enabled)
     {
         return;
     }
@@ -140,7 +141,7 @@ void SkinChanger::tick(const std::stop_token &token, const Game &game)
         modelIndex = 0;
     }
 
-    short knife_idx = KNIFE_IDS[options.skins_knife_id];
+    short knife_idx = KNIFE_IDS[cfg.skins_knife_id];
     if (last_knife_id != knife_idx)
     {
         modelIndex = 0;
@@ -148,7 +149,7 @@ void SkinChanger::tick(const std::stop_token &token, const Game &game)
     }
 
     while (!modelIndex && !token.stop_requested())
-        modelIndex = get_model_idx(game, knife_idx);
+        modelIndex = get_model_idx(s, knife_idx);
 
     // loop through m_hMyWeapons slots (8 will be enough)
     for (UINT i = 0; i < 8; i++)
@@ -162,7 +163,7 @@ void SkinChanger::tick(const std::stop_token &token, const Game &game)
         }
 
         short weaponIndex = mem.read<short>(currentWeapon + offsets.m_iItemDefinitionIndex);
-        WeaponSkin weaponSkin = get_weapon_skin(options, weaponIndex);
+        WeaponSkin weaponSkin = get_weapon_skin(cfg, weaponIndex);
 
         // for knives, set item and model related properties
         if (weaponIndex == WEAPON_KNIFE || weaponIndex == WEAPON_KNIFE_T || weaponIndex == knife_idx)
@@ -171,7 +172,7 @@ void SkinChanger::tick(const std::stop_token &token, const Game &game)
             mem.write<UINT>(currentWeapon + offsets.m_nModelIndex, modelIndex);
             mem.write<UINT>(currentWeapon + offsets.m_iViewModelIndex, modelIndex);
             mem.write<int>(currentWeapon + offsets.m_iEntityQuality, ENTITY_QUALITY);
-            weaponSkin = WeaponSkin("", weaponIndex, options.skins_knife_skin_id, 0.0001f);
+            weaponSkin = WeaponSkin("", weaponIndex, cfg.skins_knife_skin_id, 0.0001f);
         }
 
         if (weaponSkin.kit != 0)

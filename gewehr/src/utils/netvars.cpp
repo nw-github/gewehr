@@ -101,7 +101,7 @@ namespace
 
 }
 
-DWORD netvars::find(const Memory& mem, DWORD dwStart, LPCSTR lpClassName, LPCSTR lpVarName)
+DWORD utl::find_netvar(const Memory& mem, DWORD dwStart, LPCSTR lpClassName, LPCSTR lpVarName)
 {
     for (DWORD dwClass = dwStart; dwClass; dwClass = get_next_class(mem, dwClass))
     {

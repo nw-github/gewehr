@@ -51,7 +51,7 @@
     <ClCompile Include="src\visuals.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\game.cpp">
+    <ClCompile Include="src\state.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -341,7 +341,7 @@
     <ClInclude Include="include\features.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\game.hpp">
+    <ClInclude Include="include\state.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

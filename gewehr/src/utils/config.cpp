@@ -11,7 +11,7 @@ namespace {
     fs::path config;
 }
 
-std::optional<Options> Options::load() {
+std::optional<Config> Config::load() {
     char documents[MAX_PATH];
     if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, documents))) {
         folder = fs::path{documents} / FOLDER_NAME;
@@ -22,7 +22,7 @@ std::optional<Options> Options::load() {
             if (std::ifstream file{config})
                 file >> js;
 
-            return js.get<Options>();
+            return js.get<Config>();
         } catch (const std::exception &ex) {
             utl::println("Error loading config file: {}", ex.what());
         }
@@ -31,7 +31,7 @@ std::optional<Options> Options::load() {
     return std::nullopt;
 }
 
-bool Options::save() const {
+bool Config::save() const {
     if (!std::filesystem::exists(folder) || !std::filesystem::create_directory(folder))
         return false;
 

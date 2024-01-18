@@ -1,10 +1,6 @@
 #pragma once
 #include "memory.hpp"
 
-namespace netvars {
-    DWORD find(const Memory& mem, DWORD dwStart, LPCSTR lpClassName, LPCSTR lpVarName);
-}
-
 namespace utl {
     void attach_console();
     void detach_console();
@@ -14,6 +10,8 @@ namespace utl {
     std::string randstr(int length);
     // random number from low to high, inclusive on both ends
     int randint(int low, int high);
+
+    DWORD find_netvar(const Memory& mem, DWORD dwStart, LPCSTR lpClassName, LPCSTR lpVarName);
 
 #ifndef _DEBUG
     template<typename... Args>
