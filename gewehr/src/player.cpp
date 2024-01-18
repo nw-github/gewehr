@@ -8,41 +8,42 @@
 
 using namespace std::chrono_literals;
 
-void player::tbot_thread_proc(std::stop_token token, const Game &game) {
+void player::tbot_thread_proc(std::stop_token token, const Game &game)
+{
     const auto &options = game.options;
-    while (!token.stop_requested()) {
+    while (!token.stop_requested())
+    {
         std::this_thread::sleep_for(1ms);
-
-        if (!options.trigger_enabled || !utl::is_csgo_focused(game.mem))
+        if (!utl::is_csgo_focused(game.mem))
             continue;
 
-        if (!options.trigger_on_key || utl::is_key_down(options.trigger_key)) {
+        if (!options.trigger_on_key || utl::is_key_down(options.trigger_key))
+        {
             LocalPlayer local(game.mem, game.offsets);
             if (!local)
                 continue;
 
             int player_number = local.m_iCrosshairId() - 1;
-            if (player_number > 0 && player_number < 64) {
-                BasePlayer player(game.mem, game.offsets, player_number);
-                if (!player || player.m_bDormant() || player.m_bGunGameImmunity())
-                    continue;
-                if (player.m_iTeamNum() == local.m_iTeamNum())
-                    continue;
+            if (player_number <= 0 || player_number >= 64)
+                continue;
 
-                std::this_thread::sleep_for(std::chrono::milliseconds{options.trigger_delay});
-                local.force_attack(6);
-            }
+            BasePlayer player(game.mem, game.offsets, player_number);
+            if (!player || player.m_bDormant() || player.m_bGunGameImmunity())
+                continue;
+            if (player.m_iTeamNum() == local.m_iTeamNum())
+                continue;
+
+            std::this_thread::sleep_for(std::chrono::milliseconds{options.trigger_delay});
+            local.force_attack(6);
         }
     }
 }
 
-void player::bhop_thread_proc(std::stop_token token, const Game &game) {
-    while (!token.stop_requested()) {
+void player::bhop_thread_proc(std::stop_token token, const Game &game)
+{
+    while (!token.stop_requested())
+    {
         std::this_thread::sleep_for(1ms);
-
-        if (!game.options.bhop_enabled)
-            continue;
-
         if (!utl::is_csgo_focused(game.mem))
             continue;
 
@@ -56,15 +57,16 @@ void player::bhop_thread_proc(std::stop_token token, const Game &game) {
     }
 }
 
-void player::rcs_thread_proc(std::stop_token token, const Game &game) {
+void player::rcs_thread_proc(std::stop_token token, const Game &game)
+{
     QAngle old_punch(0.f, 0.f, 0.f);
 
     const auto &options = game.options;
-    while (!token.stop_requested()) {
+    while (!token.stop_requested())
+    {
         LocalPlayer local(game.mem, game.offsets);
-        if (options.rcs_enabled && 
-            utl::is_csgo_focused(game.mem) && 
-            local && 
+        if (utl::is_csgo_focused(game.mem) &&
+            local &&
             local.m_iShotsFired() > options.rcs_after_shots
         ) {
             QAngle aim_punch = local.m_aimPunchAngle() * 2.f;

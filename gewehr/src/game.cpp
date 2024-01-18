@@ -40,8 +40,10 @@ std::optional<Game> Game::init() {
     };
 }
 
-void Game::reload_config() {
+bool Game::reload_config() {
     if (const auto config = Options::load()) {
         options = config.value();
+        return true;
     }
+    return false;
 }

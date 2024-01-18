@@ -6,7 +6,7 @@
 class Game {
 public:
     static std::optional<Game> init();
-    void reload_config();
+    bool reload_config();
 
 public:
     Memory mem;

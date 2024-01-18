@@ -12,9 +12,7 @@ using namespace std::chrono_literals;
 namespace {
     void apply_chams(const Game &game, BasePlayer& player, LocalPlayer& local) {
         const auto &[mem, _, options] = game;
-
-        int iEntTeam = player.m_iTeamNum();
-        if (iEntTeam != local.m_iTeamNum()) {
+        if (player.m_iTeamNum() != local.m_iTeamNum()) {
             mem.write<BYTE>(player.m_dwBaseAddr + 0x70, options.chams_enemy_color.r);
             mem.write<BYTE>(player.m_dwBaseAddr + 0x71, options.chams_enemy_color.g);
             mem.write<BYTE>(player.m_dwBaseAddr + 0x72, options.chams_enemy_color.b);
@@ -27,27 +25,24 @@ namespace {
 
     void apply_glow(const Game &game, BasePlayer& player, LocalPlayer& local, DWORD dwGlowObjManager) {
         const auto &[mem, _, options] = game;
-
-        int iGlowIndex = player.m_iGlowIndex();
+        DWORD offset = dwGlowObjManager + (player.m_iGlowIndex() * sizeof(GlowObjectDefinition));
+        auto obj = mem.read<GlowObjectDefinition>(offset);
         if (player.m_iTeamNum() != local.m_iTeamNum()) {
-            GlowObjectDefinition obj = mem.read<GlowObjectDefinition>(dwGlowObjManager + (iGlowIndex * 0x38));
             obj.m_flRed = options.glow_enemy_color.r / 255.f;
             obj.m_flGreen = options.glow_enemy_color.g / 255.f;
             obj.m_flBlue = options.glow_enemy_color.b / 255.f;
             obj.m_flAlpha = options.glow_enemy_color.a / 255.f;
             obj.m_bRenderWhenOccluded = true;
             obj.m_bRenderWhenUnoccluded = false;
-            mem.write(dwGlowObjManager + (iGlowIndex * 0x38), obj);
         } else if (options.glow_teammates) {
-            GlowObjectDefinition obj = mem.read<GlowObjectDefinition>(dwGlowObjManager + (iGlowIndex * 0x38));
             obj.m_flRed = options.glow_team_color.r / 255.f;
             obj.m_flGreen = options.glow_team_color.g / 255.f;
             obj.m_flBlue = options.glow_team_color.b / 255.f;
             obj.m_flAlpha = options.glow_team_color.a / 255.f;
             obj.m_bRenderWhenOccluded = true;
             obj.m_bRenderWhenUnoccluded = false;
-            mem.write(dwGlowObjManager + (iGlowIndex * 0x38), obj);
         }
+        mem.write(offset, obj);
     }
 
     void set_chams_brightness(const Game &game) {
@@ -60,6 +55,8 @@ namespace {
 
 void visuals::thread_proc(std::stop_token token, const Game &game) {
     const auto &[mem, offsets, options] = game;
+
+    SkinChanger skins(options);
     while (!token.stop_requested()) {
         std::this_thread::sleep_for(1ms);
 
@@ -67,9 +64,11 @@ void visuals::thread_proc(std::stop_token token, const Game &game) {
         if (!local)
             continue;
 
+        skins.tick(token, game);
+
         DWORD dwGlowObjManager = mem.read<DWORD>(mem.client_dll.get_image_base() + offsets.dwGlowObjManager);
         for (int i = 1; i < 64; i++) {
-            BasePlayer player(game.mem, game.offsets, i);
+            BasePlayer player(mem, offsets, i);
             if (!player)
                 continue;
             if (player.m_iHealth() <= 0 || player.m_iTeamNum() == 0)

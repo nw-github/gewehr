@@ -10,10 +10,10 @@ struct Feature {
     using ThreadProc = std::function<void(std::stop_token, const Game &)>;
 
 public:
-    Feature(const Game &game, ThreadProc proc, bool start)
-        : thread_proc(proc), thr(std::nullopt)
+    Feature(const Game &game, ThreadProc proc, SHORT&toggle_key, bool &enabled)
+        : thread_proc(proc), thr(std::nullopt), toggle_key(toggle_key), enabled(enabled)
     {
-        if (start) {
+        if (enabled) {
             this->start(game);
         }
     }
@@ -23,7 +23,9 @@ public:
     }
 
     void start(const Game &game) {
-        thr = std::jthread(thread_proc, std::ref(game));
+        if (!thr) {
+            thr = std::jthread(thread_proc, std::ref(game));
+        }
     }
 
     void stop() {
@@ -34,9 +36,28 @@ public:
         }
     }
 
+    void enable(const Game &game) {
+        if (enabled) {
+            start(game);
+        } else {
+            stop();
+        }
+    }
+
+    void check_key(const Game& game) {
+        if (utl::is_key_down(toggle_key)) {
+            enabled = !enabled;
+            enable(game);
+            Beep((enabled) ? 1000 : 900, 250);
+            print_menu(game.options);
+        }
+    }
+
 private:
     ThreadProc thread_proc;
     std::optional<std::jthread> thr;
+    bool& enabled;
+    SHORT &toggle_key;
 
 };
 
@@ -64,7 +85,6 @@ namespace {
     }
 
     bool execute() {
-        utl::attach_console();
         auto _game = Game::init();
         if (!_game) {
             return false;
@@ -74,38 +94,25 @@ namespace {
         std::this_thread::sleep_for(1000ms);
         print_menu(options);
 
-        std::array<Feature, 5> features{
-            Feature(game, visuals::thread_proc, options.visuals_enabled),
-            Feature(game, player::bhop_thread_proc, options.bhop_enabled),
-            Feature(game, player::rcs_thread_proc, options.rcs_enabled),
-            Feature(game, player::tbot_thread_proc, options.trigger_enabled),
-            Feature(game, skin_changer::thread_proc, options.skins_enabled),
+        std::array<Feature, 4> features{
+            Feature(game, visuals::thread_proc, options.visuals_toggle_key, options.visuals_enabled),
+            Feature(game, player::bhop_thread_proc, options.bhop_toggle_key, options.bhop_enabled),
+            Feature(game, player::rcs_thread_proc, options.rcs_toggle_key, options.rcs_enabled),
+            Feature(game, player::tbot_thread_proc, options.trigger_toggle_key, options.trigger_enabled),
         };
 
         while (!utl::is_key_down(options.exit_key)) {
-#define TOGGLE_KEY(feature, key, enabled) \
-        do { \
-            if (utl::is_key_down(key)) {\
-                if (((enabled) = !(enabled))) {\
-                    features[feature].start(game);\
-                } else {\
-                    features[feature].stop();\
-                }\
-                Beep((enabled) ? 1000 : 900, 250); \
-                print_menu(options); \
-            } \
-    } while (false)
-
-            TOGGLE_KEY(0, options.visuals_toggle_key, options.visuals_enabled);
-            TOGGLE_KEY(1, options.bhop_toggle_key, options.bhop_enabled);
-            TOGGLE_KEY(2, options.rcs_toggle_key, options.rcs_enabled);
-            TOGGLE_KEY(3, options.trigger_toggle_key, options.trigger_enabled);
-
-#undef TOGGLE_KEY
+            for (auto &feature : features) {
+                feature.check_key(game);
+            }
 
             if (utl::is_key_down(options.refresh_cfg_key)) {
                 Beep(900, 400);
-                game.reload_config();
+                if (game.reload_config()) {
+                    for (auto &feature : features) {
+                        feature.enable(game);
+                    }
+                }
                 print_menu(game.options);
             }
 
@@ -125,6 +132,7 @@ namespace {
     }
 
     DWORD WINAPI main_thread_proc(void *hModule) {
+        utl::attach_console();
         while (true) {
             if (!execute()) {
                 break;
