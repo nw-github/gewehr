@@ -96,13 +96,13 @@ void LocalPlayer::SetViewAngles(const QAngle &angles) {
 }
 
 void LocalPlayer::force_jump(DWORD jump) {
-    mem.write<DWORD>(offsets.dwForceJump, jump);
+    mem.write(offsets.dwForceJump, jump);
 }
 
 void LocalPlayer::force_attack(DWORD attack) {
-    mem.write<DWORD>(offsets.dwForceAttack, attack);
+    mem.write(offsets.dwForceAttack, attack);
 }
 
 void LocalPlayer::set_fov(int fov) {
-    mem.write<int>(baseAddr + offsets.m_iFOV, fov);
+    mem.write(baseAddr + offsets.m_iFOV, fov);
 }

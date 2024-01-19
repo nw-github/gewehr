@@ -38,9 +38,8 @@ namespace {
     }
 
     void set_chams_brightness(const State &s) {
-        DWORD self  = s.offsets.modelAmbientMin - 0x2c;
-        DWORD xored = std::bit_cast<DWORD>(s.cfg.chams_brightness) ^ self;
-        s.mem.write<DWORD>(s.offsets.modelAmbientMin, xored);
+        DWORD self = s.offsets.modelAmbientMin - 0x2c;
+        s.mem.write(s.offsets.modelAmbientMin, std::bit_cast<DWORD>(s.cfg.chams_brightness) ^ self);
     }
 } // namespace
 

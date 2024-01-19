@@ -21,10 +21,16 @@ std::optional<State> State::init() {
         return std::nullopt;
     }
 
+    auto config = Config::load();
+    if (!config) {
+        config = Config{};
+        config->save();
+    }
+
     return State{
         .mem = std::move(mem.value()),
         .offsets = offsets.value(),
-        .cfg = Config::load().value_or(Config{}),
+        .cfg = *config,
     };
 }
 

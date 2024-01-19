@@ -21,18 +21,16 @@ namespace {
     constexpr const int ENTITY_QUALITY = 3;
 
     UINT get_model_idx_by_name(const State &s, std::string_view name) {
-        const auto &[mem, offs, _] = s;
-
-        auto cstate = mem.read<DWORD>(offs.dwClientState);
-        auto nst    = mem.read<DWORD>(
-            cstate + offs.m_dwModelPrecache); // CClientState + 0x529C -> INetworkStringTable*
-                                                 // m_pModelPrecacheTable
-        auto nsd = mem.read<DWORD>(
-            nst + 0x40); // INetworkStringTable + 0x40 -> INetworkStringDict* m_pItems
-        auto nsdi = mem.read<DWORD>(nsd + 0xC); // INetworkStringDict + 0xC -> void* m_pItems
+        auto cstate = s.mem.read<DWORD>(s.offsets.dwClientState);
+        // CClientState + 0x529C      -> INetworkStringTable *m_pModelPrecacheTable
+        auto nst = s.mem.read<DWORD>(cstate + s.offsets.m_dwModelPrecache);
+        // INetworkStringTable + 0x40 -> INetworkStringDict *m_pItems
+        auto nsd = s.mem.read<DWORD>(nst + 0x40);
+        // INetworkStringDict + 0xC   -> void *m_pItems
+        auto items = s.mem.read<DWORD>(nsd + 0xC);
         for (UINT i = 0; i < 1024; i++) {
-            auto nsdi_i = mem.read<DWORD>(nsdi + 0xC + i * 0x34);
-            auto str    = mem.read<std::array<char, 128>>(nsdi_i);
+            auto item = s.mem.read<DWORD>(items + 0xC + i * 0x34);
+            auto str  = s.mem.read<std::array<char, 128>>(item);
             if (utl::icompare(str.data(), name)) {
                 return i;
             }
@@ -140,17 +138,17 @@ void SkinChanger::tick(const std::stop_token &token, const State &s) {
 
         // for knives, set item and model related properties
         if (weapon_idx == WEAPON_KNIFE || weapon_idx == WEAPON_KNIFE_T || weapon_idx == knife_idx) {
-            mem.write<short>(current_weapon + offs.m_iItemDefinitionIndex, knife_idx);
-            mem.write<UINT>(current_weapon + offs.m_nModelIndex, model_index);
-            mem.write<UINT>(current_weapon + offs.m_iViewModelIndex, model_index);
-            mem.write<int>(current_weapon + offs.m_iEntityQuality, ENTITY_QUALITY);
+            mem.write(current_weapon + offs.m_iItemDefinitionIndex, knife_idx);
+            mem.write(current_weapon + offs.m_nModelIndex, model_index);
+            mem.write(current_weapon + offs.m_iViewModelIndex, model_index);
+            mem.write(current_weapon + offs.m_iEntityQuality, ENTITY_QUALITY);
             skin = WeaponSkin("", weapon_idx, cfg.skins_knife_skin_id, 0.0001f);
         }
 
         if (skin.kit != 0) { // set skin properties
-            mem.write<int>(current_weapon + offs.m_iItemIDHigh, ITEM_ID_HIGH);
-            mem.write<UINT>(current_weapon + offs.m_nFallbackPaintKit, skin.kit);
-            mem.write<float>(current_weapon + offs.m_flFallbackWear, skin.wear);
+            mem.write(current_weapon + offs.m_iItemIDHigh, ITEM_ID_HIGH);
+            mem.write(current_weapon + offs.m_nFallbackPaintKit, skin.kit);
+            mem.write(current_weapon + offs.m_flFallbackWear, skin.wear);
         }
     }
 
@@ -171,5 +169,5 @@ void SkinChanger::tick(const std::stop_token &token, const State &s) {
         return;
     }
 
-    mem.write<UINT>(view_model + offs.m_nModelIndex, model_index);
+    mem.write(view_model + offs.m_nModelIndex, model_index);
 }
