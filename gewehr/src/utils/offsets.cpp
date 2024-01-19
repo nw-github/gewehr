@@ -20,20 +20,16 @@ namespace {
         BYTE wildcard,
         UINT offset,
         UINT extra,
-        bool relative,
-        bool subtract
+        bool relative
     ) {
         auto bytes = buffer.data();
         for (DWORD i = 0; i < buffer.size() - pattern.size(); i++)  {
             if (check_pattern(bytes + i, pattern, wildcard)) {
-                DWORD addr = base + i + offset;
                 if (relative) {
-                    addr = *(DWORD *)(bytes + i + offset);
+                    return *(DWORD *)(bytes + i + offset) + extra;
+                } else {
+                    return base + i + offset + extra;
                 }
-                if (subtract) {
-                    addr -= base;
-                }
-                return addr + extra;
             }
         }
         return 0;
@@ -130,8 +126,8 @@ bool Offsets::initialize(const Memory &mem) {
     }
 
 #define EXP(x) std::span((const BYTE *)xorstr(x), sizeof(x) - 1)
-#define FIND_PATTERN(var, data, base, patt, wildcard, offs, extra, rel, sub) \
-    if (!(var = find_pattern(data, base, EXP(patt), wildcard, offs, extra, rel, sub))) {\
+#define FIND_PATTERN(var, data, base, patt, wildcard, offs, extra, rel) \
+    if (!(var = find_pattern(data, base, EXP(patt), wildcard, offs, extra, rel))) {\
         utl::println(xorstr("[!] Offset "#var" could not be found!"));\
         return false;\
     }\
@@ -140,54 +136,51 @@ bool Offsets::initialize(const Memory &mem) {
     // F3 0F 11 80 ? ? ? ? F3 0F 10 44 24 38
     FIND_PATTERN(dwClientState, engine, engine_base,
         "\xA1\xAA\xAA\xAA\xAA\x33\xD2\x6A\x00\x6A\x00\x33\xC9\x89\xB0",
-        0xAA, 0x1, 0x0, true, false);
+        0xAA, 0x1, 0x0, true);
     FIND_PATTERN(dwClientState_ViewAngles, engine, engine_base,
         "\xF3\x0F\x11\x86\xAA\xAA\xAA\xAA\xF3\x0F\x10\x44\x24\xAA\xF3\x0F\x11\x86",
-        0xAA, 0x4, 0x0, true, false);
+        0xAA, 0x4, 0x0, true);
     FIND_PATTERN(dwClientState_GetLocalPlayer, engine, engine_base,
         "\x8B\x80\xAA\xAA\xAA\xAA\x40\xC3",
-        0xAA, 0x2, 0x0, true, false);
+        0xAA, 0x2, 0x0, true);
     FIND_PATTERN(m_dwModelPrecache, engine, engine_base,
         "\x0C\x3B\x81\xAA\xAA\xAA\xAA\x75\x11\x8B\x45\x10\x83\xF8\x01\x7C\x09\x50\x83",
-        0xAA, 0x3, 0x0, true, false);
+        0xAA, 0x3, 0x0, true);
     FIND_PATTERN(modelAmbientMin, engine, engine_base,
         "\xF3\x0F\x10\x0D\xAA\xAA\xAA\xAA\xF3\x0F\x11\x4C\x24\xAA\x8B\x44\x24\x20\x35\xAA\xAA\xAA\xAA\x89\x44\x24\x0C",
-        0xAA, 0x4, 0x0, true, true);
+        0xAA, 0x4, 0x0, true);
 
     //-------------------------------------------------------------------------------------------
 
     FIND_PATTERN(dwEntityList, client, client_base,
         "\xBB\xAA\xAA\xAA\xAA\x83\xFF\x01\x0F\x8C\xAA\xAA\xAA\xAA\x3B\xF8",
-        0xAA, 1, 0, true, true);
-    FIND_PATTERN(dwEntityList2, client, client_base,
-        "\xBB\xAA\xAA\xAA\xAA\x83\xFF\x01\x0F\x8C\xAA\xAA\xAA\xAA\x3B\xF8",
-        0xAA, 1, 0, true, false);
+        0xAA, 1, 0, true);
     FIND_PATTERN(dwLocalPlayer, client, client_base,
         "\x8D\x34\x85\xAA\xAA\xAA\xAA\x89\x15\xAA\xAA\xAA\xAA\x8B\x41\x08\x8B\x48\x04\x83\xF9\xFF",
-        0xAA, 3, 4, true, false);
+        0xAA, 3, 4, true);
     FIND_PATTERN(dwForceJump, client, client_base,
         "\x8B\x0D\xAA\xAA\xAA\xAA\x8B\xD6\x8B\xC1\x83\xCA\x02",
-        0xAA, 2, 0, true, true);
+        0xAA, 2, 0, true);
     FIND_PATTERN(dwForceAttack, client, client_base,
         "\x89\x0D\xAA\xAA\xAA\xAA\x8B\x0D\xAA\xAA\xAA\xAA\x8B\xF2\x8B\xC1\x83\xCE\x04",
-        0xAA, 2, 0, true, true);
+        0xAA, 2, 0, true);
     FIND_PATTERN(dwGlowObjManager, client, client_base,
         "\xA1\xAA\xAA\xAA\xAA\xA8\x01\x75\x4B",
-        0xAA, 1, 4, true, true);
+        0xAA, 1, 4, true);
     FIND_PATTERN(bDormant, client, client_base,
         "\x8A\x81\xAA\xAA\xAA\xAA\xC3\x32\xC0",
-        0xAA, 2, 8, true, false);
+        0xAA, 2, 8, true);
     FIND_PATTERN(dwViewMatrix, client, client_base,
         "\x0F\x10\x05\xAA\xAA\xAA\xAA\x8D\x85\xAA\xAA\xAA\xAA\xB9",
-        0xAA, 3, 176, true, true);
+        0xAA, 3, 176, true);
 
     //-------------------------------------------------------------------------------------------
 
     DWORD dwGetAllClasses = find_pattern(client, client_base,
         EXP("\x44\x54\x5F\x54\x45\x57\x6F\x72\x6C\x64\x44\x65\x63\x61\x6C"),
-        0xAA, 0, 0, false, false);
+        0xAA, 0, 0, false);
     dwGetAllClasses = find_pattern(client, client_base,
-        {(PBYTE)&dwGetAllClasses, sizeof(PBYTE)}, 0x0, 0x2B, 0x0, true, false);
+        {(PBYTE)&dwGetAllClasses, sizeof(PBYTE)}, 0x0, 0x2B, 0x0, true);
 
 #undef EXP
 #undef FIND_PATTERN

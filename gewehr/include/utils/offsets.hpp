@@ -6,19 +6,20 @@ public:
     static std::optional<Offsets> init(const Memory &mem);
 
 public:
+    // Pointers
     DWORD dwClientState                = 0;
-    DWORD dwClientState_ViewAngles     = 0;
-    DWORD dwClientState_GetLocalPlayer = 0;
     DWORD dwLocalPlayer                = 0;
     DWORD dwEntityList                 = 0;
-    DWORD dwEntityList2                = 0;
     DWORD dwForceJump                  = 0;
     DWORD dwForceAttack                = 0;
     DWORD dwGlowObjManager             = 0;
     DWORD modelAmbientMin              = 0;
+    // Offsets
+    DWORD dwClientState_ViewAngles     = 0;
+    DWORD dwClientState_GetLocalPlayer = 0;
     DWORD bDormant                     = 0;
     DWORD dwViewMatrix                 = 0;
-    // netvars
+    // Netvar offsets
     DWORD m_fFlags                     = 0;
     DWORD m_iCrosshairId               = 0;
     DWORD m_iTeamNum                   = 0;

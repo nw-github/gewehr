@@ -17,7 +17,7 @@ namespace {
         }
 
         const auto &color = is_teammate ? s.cfg.chams_team_color : s.cfg.chams_enemy_color;
-        s.mem.write(player.m_dwBaseAddr + 0x70, std::array<BYTE, 3>{color.r, color.g, color.b});
+        s.mem.write(player.baseAddr + 0x70, std::array<BYTE, 3>{color.r, color.g, color.b});
     }
 
     void apply_glow(const State &s, Player &player, LocalPlayer &local, DWORD glowObjManager) {
@@ -38,9 +38,9 @@ namespace {
     }
 
     void set_chams_brightness(const State &s) {
-        DWORD self  = s.mem.engine_dll.base_addr + s.offsets.modelAmbientMin - 0x2c;
+        DWORD self  = s.offsets.modelAmbientMin - 0x2c;
         DWORD xored = std::bit_cast<DWORD>(s.cfg.chams_brightness) ^ self;
-        s.mem.write<DWORD>(s.mem.engine_dll.base_addr + s.offsets.modelAmbientMin, xored);
+        s.mem.write<DWORD>(s.offsets.modelAmbientMin, xored);
     }
 } // namespace
 
@@ -66,13 +66,14 @@ void visuals::thread_proc(std::stop_token token, const State &s) {
             continue;
         }
 
-        auto glowObjManager = mem.read<DWORD>(mem.client_dll.base_addr + offsets.dwGlowObjManager);
+        auto glowObjManager = mem.read<DWORD>(offsets.dwGlowObjManager);
         for (int i = 1; i < 64; i++) {
             Player pl(mem, offsets, i);
             if (!pl || pl.m_iHealth() <= 0 || pl.m_iTeamNum() == 0 || pl.m_bDormant() ||
-                i == local.EntIndex()) {
+                pl.baseAddr == local.baseAddr) {
                 continue;
             }
+
             if (cfg.chams_enabled) {
                 apply_chams(s, pl, local);
             }

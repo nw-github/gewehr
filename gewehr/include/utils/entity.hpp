@@ -3,18 +3,18 @@
 #include "utils/memory.hpp"
 #include "utils/offsets.hpp"
 
-class Player
-{
+class Player {
 public:
-    DWORD m_dwBaseAddr;
+    DWORD baseAddr;
 
     Player(const Memory &mem, const Offsets &offsets, int ent_index);
 
 public:
-    operator bool() const { return m_dwBaseAddr != 0; }
+    operator bool() const {
+        return baseAddr != 0;
+    }
 
-    bool is_enemy_of(Player &rhs)
-    {
+    bool is_enemy_of(Player &rhs) {
         return m_iTeamNum() != rhs.m_iTeamNum();
     }
 
@@ -39,14 +39,10 @@ protected:
     const Offsets &offsets;
 
 protected:
-    Player(const Memory &mem, const Offsets &offsets)
-        : mem(mem), offsets(offsets), m_dwBaseAddr(0)
-    {
-    }
+    Player(const Memory &mem, const Offsets &offsets) : mem(mem), offsets(offsets), baseAddr(0) { }
 };
 
-class LocalPlayer : public Player
-{
+class LocalPlayer : public Player {
 public:
     LocalPlayer(const Memory &mem, const Offsets &offsets);
 
@@ -61,5 +57,5 @@ public:
     void force_attack(DWORD attack);
 
 private:
-    DWORD m_dwClientState;
+    DWORD dwClientState;
 };

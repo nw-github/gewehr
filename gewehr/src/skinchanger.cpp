@@ -100,7 +100,7 @@ namespace {
 
     DWORD get_handle_entity(const Memory &mem, const Offsets &offs, DWORD addr) {
         auto handle = mem.read<DWORD>(addr) & 0xfff;
-        return mem.read<DWORD>(offs.dwEntityList2 + (handle - 1) * 0x10);
+        return mem.read<DWORD>(offs.dwEntityList + (handle - 1) * 0x10);
     }
 }
 
