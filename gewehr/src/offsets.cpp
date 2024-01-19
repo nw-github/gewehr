@@ -1,7 +1,7 @@
 #include <stdafx.h>
 
-#include "utils/offsets.hpp"
-#include "utils/utils.hpp"
+#include "offsets.hpp"
+#include "utils.hpp"
 
 namespace {
     bool check_pattern(const BYTE *bytes, std::span<const BYTE> pattern, BYTE wildcard) {
@@ -13,13 +13,13 @@ namespace {
         return true;
     }
 
-    DWORD find_pattern(std::span<const BYTE> buffer,
-                       DWORD base,
-                       std::span<const BYTE> pattern,
-                       BYTE wildcard,
-                       UINT offset,
-                       UINT extra,
-                       bool relative) {
+    DWORD scan(std::span<const BYTE> buffer,
+               DWORD base,
+               std::span<const BYTE> pattern,
+               BYTE wildcard,
+               UINT offset,
+               UINT extra,
+               bool relative) {
         auto bytes = buffer.data();
         for (DWORD i = 0; i < buffer.size() - pattern.size(); i++) {
             if (check_pattern(bytes + i, pattern, wildcard)) {
@@ -84,14 +84,13 @@ namespace netvars {
         return 0;
     }
 
-    DWORD
-    find(const Memory &mem, DWORD start, std::string_view class_name, std::string_view var_name) {
+    DWORD find(const Memory &mem, DWORD start, std::string_view class_name, std::string_view var) {
         for (DWORD clazz = start; clazz; clazz = mem.read<DWORD>(clazz + m_pNext)) {
             auto table_addr = mem.read<DWORD>(clazz + m_pRecvTable);
             auto name_addr  = mem.read<DWORD>(table_addr + m_pNetTableName);
             auto table_name = mem.read<std::array<char, 128>>(name_addr);
             if (utl::icompare(table_name.data(), class_name)) {
-                return scan_table(mem, table_addr, var_name, 0);
+                return scan_table(mem, table_addr, var, 0);
             }
         }
         return 0;
@@ -125,15 +124,15 @@ bool Offsets::initialize(const Memory &mem) {
     }
 
 #define EXP(x) std::span((const BYTE *)xorstr(x), sizeof(x) - 1)
-#define FIND_PATTERN(var, data, base, patt, wildcard, offs, extra, rel)             \
-    if (!(var = find_pattern(data, base, EXP(patt), wildcard, offs, extra, rel))) { \
-        utl::println(xorstr("[!] Offset " #var " could not be found!"));            \
-        return false;                                                               \
-    }                                                                               \
+#define PATTERN_SCAN(var, data, base, patt, wildcard, offs, extra, rel)     \
+    if (!(var = scan(data, base, EXP(patt), wildcard, offs, extra, rel))) { \
+        utl::println(xorstr("[!] Offset " #var " could not be found!"));    \
+        return false;                                                       \
+    }                                                                       \
     utl::println(xorstr("[+] " #var ": {:#x}"), var);
 
     // F3 0F 11 80 ? ? ? ? F3 0F 10 44 24 38
-    FIND_PATTERN(dwClientState,
+    PATTERN_SCAN(dwClientState,
                  engine,
                  engine_base,
                  "\xA1\xAA\xAA\xAA\xAA\x33\xD2\x6A\x00\x6A\x00\x33\xC9\x89\xB0",
@@ -141,7 +140,7 @@ bool Offsets::initialize(const Memory &mem) {
                  0x1,
                  0x0,
                  true);
-    FIND_PATTERN(dwClientState_ViewAngles,
+    PATTERN_SCAN(dwClientState_ViewAngles,
                  engine,
                  engine_base,
                  "\xF3\x0F\x11\x86\xAA\xAA\xAA\xAA\xF3\x0F\x10\x44\x24\xAA\xF3\x0F\x11\x86",
@@ -149,7 +148,7 @@ bool Offsets::initialize(const Memory &mem) {
                  0x4,
                  0x0,
                  true);
-    FIND_PATTERN(dwClientState_GetLocalPlayer,
+    PATTERN_SCAN(dwClientState_GetLocalPlayer,
                  engine,
                  engine_base,
                  "\x8B\x80\xAA\xAA\xAA\xAA\x40\xC3",
@@ -157,7 +156,7 @@ bool Offsets::initialize(const Memory &mem) {
                  0x2,
                  0x0,
                  true);
-    FIND_PATTERN(m_dwModelPrecache,
+    PATTERN_SCAN(m_dwModelPrecache,
                  engine,
                  engine_base,
                  "\x0C\x3B\x81\xAA\xAA\xAA\xAA\x75\x11\x8B\x45\x10\x83\xF8\x01\x7C\x09\x50\x83",
@@ -165,7 +164,7 @@ bool Offsets::initialize(const Memory &mem) {
                  0x3,
                  0x0,
                  true);
-    FIND_PATTERN(modelAmbientMin,
+    PATTERN_SCAN(modelAmbientMin,
                  engine,
                  engine_base,
                  "\xF3\x0F\x10\x0D\xAA\xAA\xAA\xAA\xF3\x0F\x11\x4C\x24\xAA\x8B\x44\x24\x20\x35\xAA"
@@ -176,7 +175,7 @@ bool Offsets::initialize(const Memory &mem) {
                  true);
     //-------------------------------------------------------------------------------------------
 
-    FIND_PATTERN(dwEntityList,
+    PATTERN_SCAN(dwEntityList,
                  client,
                  client_base,
                  "\xBB\xAA\xAA\xAA\xAA\x83\xFF\x01\x0F\x8C\xAA\xAA\xAA\xAA\x3B\xF8",
@@ -184,7 +183,7 @@ bool Offsets::initialize(const Memory &mem) {
                  1,
                  0,
                  true);
-    FIND_PATTERN(
+    PATTERN_SCAN(
         dwLocalPlayer,
         client,
         client_base,
@@ -193,7 +192,7 @@ bool Offsets::initialize(const Memory &mem) {
         3,
         4,
         true);
-    FIND_PATTERN(dwForceJump,
+    PATTERN_SCAN(dwForceJump,
                  client,
                  client_base,
                  "\x8B\x0D\xAA\xAA\xAA\xAA\x8B\xD6\x8B\xC1\x83\xCA\x02",
@@ -201,7 +200,7 @@ bool Offsets::initialize(const Memory &mem) {
                  2,
                  0,
                  true);
-    FIND_PATTERN(dwForceAttack,
+    PATTERN_SCAN(dwForceAttack,
                  client,
                  client_base,
                  "\x89\x0D\xAA\xAA\xAA\xAA\x8B\x0D\xAA\xAA\xAA\xAA\x8B\xF2\x8B\xC1\x83\xCE\x04",
@@ -209,7 +208,7 @@ bool Offsets::initialize(const Memory &mem) {
                  2,
                  0,
                  true);
-    FIND_PATTERN(dwGlowObjManager,
+    PATTERN_SCAN(dwGlowObjManager,
                  client,
                  client_base,
                  "\xA1\xAA\xAA\xAA\xAA\xA8\x01\x75\x4B",
@@ -217,9 +216,9 @@ bool Offsets::initialize(const Memory &mem) {
                  1,
                  4,
                  true);
-    FIND_PATTERN(
+    PATTERN_SCAN(
         bDormant, client, client_base, "\x8A\x81\xAA\xAA\xAA\xAA\xC3\x32\xC0", 0xAA, 2, 8, true);
-    FIND_PATTERN(dwViewMatrix,
+    PATTERN_SCAN(dwViewMatrix,
                  client,
                  client_base,
                  "\x0F\x10\x05\xAA\xAA\xAA\xAA\x8D\x85\xAA\xAA\xAA\xAA\xB9",
@@ -231,18 +230,18 @@ bool Offsets::initialize(const Memory &mem) {
     //-------------------------------------------------------------------------------------------
 
     DWORD dwGetAllClasses =
-        find_pattern(client,
-                     client_base,
-                     EXP("\x44\x54\x5F\x54\x45\x57\x6F\x72\x6C\x64\x44\x65\x63\x61\x6C"),
-                     0xAA,
-                     0,
-                     0,
-                     false);
-    dwGetAllClasses = find_pattern(
-        client, client_base, {(PBYTE)&dwGetAllClasses, sizeof(PBYTE)}, 0x0, 0x2B, 0x0, true);
+        scan(client,
+             client_base,
+             EXP("\x44\x54\x5F\x54\x45\x57\x6F\x72\x6C\x64\x44\x65\x63\x61\x6C"),
+             0xAA,
+             0,
+             0,
+             false);
+    dwGetAllClasses =
+        scan(client, client_base, {(PBYTE)&dwGetAllClasses, sizeof(PBYTE)}, 0x0, 0x2B, 0x0, true);
 
 #undef EXP
-#undef FIND_PATTERN
+#undef PATTERN_SCAN
 
     return scan_netvars(mem, dwGetAllClasses);
 }

@@ -2,8 +2,8 @@
 
 #include "features.hpp"
 
-#include "utils/memory.hpp"
-#include "utils/offsets.hpp"
+#include "memory.hpp"
+#include "offsets.hpp"
 
 // credits: xSkins [https://github.com/0xf1a/xSkins]
 

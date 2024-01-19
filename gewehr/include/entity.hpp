@@ -1,7 +1,7 @@
 #pragma once
 
-#include "utils/memory.hpp"
-#include "utils/offsets.hpp"
+#include "memory.hpp"
+#include "offsets.hpp"
 
 class Player {
 public:

@@ -1,6 +1,6 @@
 #include <stdafx.h>
 
-#include "utils/math.hpp"
+#include "math.hpp"
 
 namespace {
     std::pair<float, float> sin_cos(float x) {

@@ -1,9 +1,9 @@
 #include <stdafx.h>
 
-#include "utils/entity.hpp"
+#include "entity.hpp"
 
-#include "utils/memory.hpp"
-#include "utils/offsets.hpp"
+#include "memory.hpp"
+#include "offsets.hpp"
 
 Player::Player(const Memory &mem, const Offsets &offsets, int idx)
     : mem(mem), offsets(offsets), baseAddr(mem.read<DWORD>(offsets.dwEntityList + (idx * 0x10))) { }

@@ -1,5 +1,5 @@
 #pragma once
-#include "utils/memory.hpp"
+#include "memory.hpp"
 
 class Offsets {
 public:

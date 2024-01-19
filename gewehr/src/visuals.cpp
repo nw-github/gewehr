@@ -2,10 +2,10 @@
 
 #include "features.hpp"
 
-#include "utils/entity.hpp"
-#include "utils/math.hpp"
-#include "utils/memory.hpp"
-#include "utils/offsets.hpp"
+#include "entity.hpp"
+#include "math.hpp"
+#include "memory.hpp"
+#include "offsets.hpp"
 
 using namespace std::chrono_literals;
 

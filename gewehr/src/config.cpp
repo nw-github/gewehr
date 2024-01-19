@@ -1,7 +1,6 @@
-#include <shlobj.h>
 #include <stdafx.h>
 
-#include "utils/config.hpp"
+#include "config.hpp"
 
 namespace fs = std::filesystem;
 

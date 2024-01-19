@@ -1,7 +1,7 @@
 #pragma once
-#include "utils/config.hpp"
-#include "utils/memory.hpp"
-#include "utils/offsets.hpp"
+#include "config.hpp"
+#include "memory.hpp"
+#include "offsets.hpp"
 
 class State {
 public:

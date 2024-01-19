@@ -2,7 +2,7 @@
 
 #include "state.hpp"
 #include "features.hpp"
-#include "utils/utils.hpp"
+#include "utils.hpp"
 
 using namespace std::chrono_literals;
 

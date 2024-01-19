@@ -1,6 +1,6 @@
 ﻿#include <stdafx.h>
 
-#include "utils/utils.hpp"
+#include "utils.hpp"
 
 #include <random>
 

@@ -1,7 +1,7 @@
 #include <stdafx.h>
 
-#include "utils/memory.hpp"
-#include "utils/utils.hpp"
+#include "memory.hpp"
+#include "utils.hpp"
 
 using namespace std::chrono_literals;
 

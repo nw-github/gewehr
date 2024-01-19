@@ -6,6 +6,7 @@
 #pragma warning(push, 0)
 #include <windows.h>
 #include <tlhelp32.h>
+#include <shlobj.h>
 
 #include <wil/resource.h>
 
