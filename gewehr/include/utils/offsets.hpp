@@ -1,13 +1,11 @@
 #pragma once
 #include "utils/memory.hpp"
 
-class Offsets
-{
+class Offsets {
 public:
     static std::optional<Offsets> init(const Memory &mem);
-    
+
 public:
-    // signatures
     DWORD dwClientState                = 0;
     DWORD dwClientState_ViewAngles     = 0;
     DWORD dwClientState_GetLocalPlayer = 0;

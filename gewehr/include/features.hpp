@@ -1,27 +1,25 @@
 #pragma once
 #include "state.hpp"
 
-struct SkinChanger
-{
+struct SkinChanger {
 public:
     SkinChanger(const Config &cfg);
 
     void tick(const std::stop_token &token, const State &s);
 
 private:
-    UINT modelIndex;
-    DWORD localPlayer;
+    UINT model_index;
+    DWORD local;
     short last_knife_id;
+
 };
 
-namespace player
-{
+namespace player {
     void bhop_thread_proc(std::stop_token token, const State &s);
     void tbot_thread_proc(std::stop_token token, const State &s);
     void rcs_thread_proc(std::stop_token token, const State &s);
 }
 
-namespace visuals
-{
+namespace visuals {
     void thread_proc(std::stop_token token, const State &s);
 }

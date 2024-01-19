@@ -8,6 +8,10 @@ public:
     static std::optional<State> init();
     bool reload_config();
 
+    bool has_focus() const {
+        return GetForegroundWindow() == mem.window;
+    }
+
 public:
     Memory mem;
     Offsets offsets;

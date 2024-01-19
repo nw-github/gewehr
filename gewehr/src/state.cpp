@@ -2,35 +2,21 @@
 
 #include "state.hpp"
 
-std::optional<State> State::init()
-{
+std::optional<State> State::init() {
     utl::clear_console();
     utl::println(xorstr("[!] Waiting for process..."));
     std::optional<Memory> mem;
-    do
-    {
-        mem = Memory::init(
-            xorstr("csgo.exe"),
-            xorstr("Counter-Strike: Global Offensive - Direct3D 9"));
+    do {
+        mem = Memory::init(xorstr("csgo.exe"), xorstr("Counter-Strike: Global Offensive - Direct3D 9"));
     } while (!mem);
 
-    if (!mem)
-    {
-        return std::nullopt;
-    }
-
     utl::println(xorstr("[+] Game window: {}"), fmt::ptr(mem->window));
-    utl::println(
-        xorstr("[+] Attached to PID {}: {}"),
-        mem->process_id,
-        fmt::ptr(mem->process.get()));
-    utl::println(xorstr("[+] Found module \"engine.dll\": {:#x}"), mem->engine_dll.get_image_base());
-    utl::println(xorstr("[+] Found module \"client.dll\": {:#x}"),
-                 mem->client_dll.get_image_base());
+    utl::println(xorstr("[+] Attached to PID {}: {}"), mem->process_id, fmt::ptr(mem->process.get()));
+    utl::println(xorstr("[+] Found module \"engine.dll\": {:#x}"), mem->engine_dll.base_addr);
+    utl::println(xorstr("[+] Found module \"client.dll\": {:#x}"), mem->client_dll.base_addr);
 
     const auto offsets = Offsets::init(mem.value());
-    if (!offsets)
-    {
+    if (!offsets) {
         utl::println(xorstr("[-] Failed to obtain offsets!"));
         return std::nullopt;
     }
@@ -42,10 +28,8 @@ std::optional<State> State::init()
     };
 }
 
-bool State::reload_config()
-{
-    if (const auto config = Config::load())
-    {
+bool State::reload_config() {
+    if (const auto config = Config::load()) {
         cfg = config.value();
         return true;
     }

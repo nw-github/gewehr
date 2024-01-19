@@ -24,45 +24,34 @@ public:
         }
     }
 
-    ~Feature()
-    {
+    ~Feature() {
         stop();
     }
 
-    void start(const State &s)
-    {
-        if (!thr)
-        {
+    void start(const State &s) {
+        if (!thr) {
             thr = std::jthread(thread_proc, std::ref(s));
         }
     }
 
-    void stop()
-    {
-        if (thr.has_value())
-        {
+    void stop() {
+        if (thr.has_value()) {
             thr->request_stop();
             thr->join();
             thr = std::nullopt;
         }
     }
 
-    void enable(const State &s)
-    {
-        if (enabled)
-        {
+    void enable(const State &s) {
+        if (enabled) {
             start(s);
-        }
-        else
-        {
+        } else {
             stop();
         }
     }
 
-    void check_key(const State &s)
-    {
-        if (utl::is_key_down(toggle_key))
-        {
+    void check_key(const State &s) {
+        if (utl::is_key_down(toggle_key)) {
             enabled = !enabled;
             enable(s);
             Beep((enabled) ? 1000 : 900, 250);
@@ -75,12 +64,11 @@ private:
     std::optional<std::jthread> thr;
     bool &enabled;
     SHORT &toggle_key;
+
 };
 
-namespace
-{
-    void print_menu(const Config &cfg)
-    {
+namespace {
+    void print_menu(const Config &cfg) {
 #define IFENABLED(x) x ? xorstr("enabled ") : xorstr("disabled")
 #define VK2STR(x) utl::vk_to_string(x)
 
@@ -102,11 +90,9 @@ namespace
 #undef VK2STR
     }
 
-    bool execute()
-    {
+    bool execute() {
         auto _s = State::init();
-        if (!_s)
-        {
+        if (!_s) {
             return false;
         }
         auto &s = _s.value();
@@ -121,20 +107,15 @@ namespace
             Feature(s, player::tbot_thread_proc, cfg.trigger_toggle_key, cfg.trigger_enabled),
         };
 
-        while (!utl::is_key_down(cfg.exit_key))
-        {
-            for (auto &feature : features)
-            {
+        while (!utl::is_key_down(cfg.exit_key)) {
+            for (auto &feature : features) {
                 feature.check_key(s);
             }
 
-            if (utl::is_key_down(cfg.refresh_cfg_key))
-            {
+            if (utl::is_key_down(cfg.refresh_cfg_key)) {
                 Beep(900, 400);
-                if (s.reload_config())
-                {
-                    for (auto &feature : features)
-                    {
+                if (s.reload_config()) {
+                    for (auto &feature : features) {
                         feature.enable(s);
                     }
                 }
@@ -142,10 +123,8 @@ namespace
             }
 
             DWORD code = 0;
-            if (GetExitCodeProcess(s.mem.process.get(), &code))
-            {
-                if (code != STILL_ACTIVE)
-                {
+            if (GetExitCodeProcess(s.mem.process.get(), &code)) {
+                if (code != STILL_ACTIVE) {
                     return true;
                 }
             }
@@ -158,13 +137,10 @@ namespace
         return false;
     }
 
-    DWORD WINAPI main_thread_proc(void *hModule)
-    {
+    DWORD WINAPI main_thread_proc(void *hModule) {
         utl::attach_console();
-        while (true)
-        {
-            if (!execute())
-            {
+        while (true) {
+            if (!execute()) {
                 break;
             }
         }
@@ -172,23 +148,11 @@ namespace
         FreeLibraryAndExitThread(static_cast<HINSTANCE>(hModule), 0);
         return 0;
     }
-
-    BOOL WINAPI dll_exit()
-    {
-        utl::detach_console();
-#ifdef _DEBUG
-        ExitProcess(0);
-#endif
-        return TRUE;
-    }
 }
 
-BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
-{
-    switch (dwReason)
-    {
-    case DLL_PROCESS_ATTACH:
-    {
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved) {
+    switch (dwReason) {
+    case DLL_PROCESS_ATTACH: {
         DisableThreadLibraryCalls(hModule);
 
         if (HANDLE thread = CreateThread(nullptr, 0, main_thread_proc, hModule, 0, nullptr))
@@ -196,12 +160,15 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 
         return TRUE;
     }
-    case DLL_PROCESS_DETACH:
-    {
-        if (lpReserved == nullptr)
-            return dll_exit();
+    case DLL_PROCESS_DETACH: {
+        if (lpReserved == nullptr) {
+            utl::detach_console();
+    #ifdef _DEBUG
+            ExitProcess(0);
+    #endif
+        }
+        return TRUE;
     }
-    break;
     }
     return TRUE;
 }

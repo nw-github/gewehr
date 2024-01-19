@@ -41,10 +41,6 @@
       </SubType>
     </ClCompile>
     <ClCompile Include="src\utils\entity.cpp" />
-    <ClCompile Include="src\utils\netvars.cpp">
-      <SubType>
-      </SubType>
-    </ClCompile>
     <ClCompile Include="src\visuals.cpp" />
   </ItemGroup>
   <ItemGroup>

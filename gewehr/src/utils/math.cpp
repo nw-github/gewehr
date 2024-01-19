@@ -16,8 +16,7 @@ Vector m::angle_vectors(const QAngle& angles) {
     return Vector{ cp * cy , cp * sy , -sp };
 }
 
-float m::get_fov(const QAngle& view_angle, const QAngle& aim_angle)
-{
+float m::get_fov(const QAngle& view_angle, const QAngle& aim_angle) {
     Vector aim = angle_vectors(view_angle);
     Vector ang = angle_vectors(aim_angle);
     return RAD2DEG(acos(aim.Dot(ang) / aim.LengthSqr()));

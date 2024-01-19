@@ -11,8 +11,6 @@ namespace utl {
     // random number from low to high, inclusive on both ends
     int randint(int low, int high);
 
-    DWORD find_netvar(const Memory& mem, DWORD dwStart, LPCSTR lpClassName, LPCSTR lpVarName);
-
 #ifndef _DEBUG
     template<typename... Args>
     void println(std::string_view fmt, Args &&...args) {
@@ -25,11 +23,16 @@ namespace utl {
     }
 #endif
 
-    inline bool is_csgo_focused(const Memory &mem) {
-        return GetForegroundWindow() == mem.window;
-    }
-
     inline bool is_key_down(int key) {
         return GetAsyncKeyState(key);
     }
+
+    inline bool icompare(std::string_view left, std::string_view right) {
+        if (left.length() != right.length()) {
+            return false;
+        }
+
+        return _stricmp(left.data(), right.data()) == 0;
+    }
+
 }

@@ -3,28 +3,30 @@
 #include "utils/memory.hpp"
 #include "utils/offsets.hpp"
 
-class QAngle;
-class Vector;
-
-class BasePlayer
+class Player
 {
 public:
     DWORD m_dwBaseAddr;
 
-    BasePlayer(const Memory &mem, const Offsets &offsets, int ent_index);
+    Player(const Memory &mem, const Offsets &offsets, int ent_index);
 
 public:
     operator bool() const { return m_dwBaseAddr != 0; }
 
-    int    m_iTeamNum();
-    int    m_iHealth();
-    int    m_iGlowIndex();
-    int    m_iCrosshairId();
-    int    m_iShotsFired();
-    bool   m_bDormant();
-    bool   m_bGunGameImmunity();
-    bool   m_bIsScoped();
-    BYTE   m_fFlags();
+    bool is_enemy_of(Player &rhs)
+    {
+        return m_iTeamNum() != rhs.m_iTeamNum();
+    }
+
+    int m_iTeamNum();
+    int m_iHealth();
+    int m_iGlowIndex();
+    int m_iCrosshairId();
+    int m_iShotsFired();
+    bool m_bDormant();
+    bool m_bGunGameImmunity();
+    bool m_bIsScoped();
+    BYTE m_fFlags();
     QAngle m_aimPunchAngle();
     Vector m_vecOrigin();
     Vector m_vecVelocity();
@@ -37,13 +39,13 @@ protected:
     const Offsets &offsets;
 
 protected:
-    BasePlayer(const Memory &mem, const Offsets &offsets)
+    Player(const Memory &mem, const Offsets &offsets)
         : mem(mem), offsets(offsets), m_dwBaseAddr(0)
-    { }
-
+    {
+    }
 };
 
-class LocalPlayer : public BasePlayer
+class LocalPlayer : public Player
 {
 public:
     LocalPlayer(const Memory &mem, const Offsets &offsets);
@@ -60,5 +62,4 @@ public:
 
 private:
     DWORD m_dwClientState;
-
 };

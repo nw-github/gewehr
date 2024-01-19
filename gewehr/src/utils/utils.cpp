@@ -4,10 +4,13 @@
 
 #include <random>
 
-void utl::attach_console()
-{
-    ::AllocConsole();
-    ::AttachConsole(GetCurrentProcessId());
+namespace {
+    thread_local std::mt19937 rng{std::random_device{}()};
+}
+
+void utl::attach_console() {
+    AllocConsole();
+    AttachConsole(GetCurrentProcessId());
 
     (void)freopen(xorstr("CONOUT$"), "w", stdout);
     HANDLE new_out = CreateFileA(
@@ -19,18 +22,16 @@ void utl::attach_console()
     SetConsoleTitleA(utl::randstr(utl::randint(10, 15)).c_str());
 
     CONSOLE_CURSOR_INFO cursor_info = { 0 };
-    cursor_info.dwSize        = sizeof(CONSOLE_CURSOR_INFO);
-    cursor_info.bVisible    = false;
+    cursor_info.dwSize = sizeof(cursor_info);
+    cursor_info.bVisible = false;
     SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursor_info);
 }
 
-void utl::detach_console()
-{
-    ::FreeConsole();
+void utl::detach_console() {
+    FreeConsole();
 }
 
-void utl::clear_console()
-{
+void utl::clear_console() {
     HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
     if (out == INVALID_HANDLE_VALUE)
         return;
@@ -39,7 +40,7 @@ void utl::clear_console()
     if (!GetConsoleScreenBufferInfo(out, &csbi))
         return;
 
-    COORD home = { 0, 0 };
+    COORD home = {0, 0};
     DWORD cells = csbi.dwSize.X * csbi.dwSize.Y;
     DWORD count;
     if (!FillConsoleOutputCharacterA(out, ' ', cells, home, &count))
@@ -50,13 +51,11 @@ void utl::clear_console()
     SetConsoleCursorPosition(out, home);
 }
 
-std::string utl::vk_to_string(int vk)
-{
+std::string utl::vk_to_string(int vk) {
     std::string buf(10, '\0');
 
     UINT sc = MapVirtualKeyA(vk, MAPVK_VK_TO_VSC_EX);
-    switch (vk)
-    {
+    switch (vk) {
     case VK_LEFT:     case VK_UP:     case VK_RIGHT:  case VK_DOWN:
     case VK_RCONTROL: case VK_RMENU:  case VK_LWIN:   case VK_RWIN:
     case VK_APPS:     case VK_PRIOR:  case VK_NEXT:   case VK_END:
@@ -74,14 +73,11 @@ std::string utl::vk_to_string(int vk)
     return buf;
 }
 
-int utl::randint(int low, int high)
-{
-    static std::mt19937 engine{std::random_device{}()};
-    return std::uniform_int_distribution{low, high}(engine);
+int utl::randint(int low, int high) {
+    return std::uniform_int_distribution{low, high}(rng);
 }
 
-std::string utl::randstr(int length)
-{
+std::string utl::randstr(int length) {
     static const std::string chars = xorstr(
         "0123456789"
         "!@#$%^&*"
@@ -94,4 +90,3 @@ std::string utl::randstr(int length)
     });
     return str;
 }
-

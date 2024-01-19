@@ -5,22 +5,24 @@
 
 namespace fs = std::filesystem;
 
-// TODO: unglobalify
 namespace {
-    fs::path folder;
-    fs::path config;
+    std::optional<fs::path> get_config_location() {
+        char documents[MAX_PATH];
+        if (FAILED(SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, documents))) {
+            return std::nullopt;
+        }
+
+        return fs::path{documents} / FOLDER_NAME / xorstr("config.json");
+    }
 }
 
 std::optional<Config> Config::load() {
-    char documents[MAX_PATH];
-    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, documents))) {
-        folder = fs::path{documents} / FOLDER_NAME;
-        config = folder / xorstr("config.json");
-
+    if (const auto path = get_config_location()) {
         nlohmann::json js;
         try {
-            if (std::ifstream file{config})
+            if (std::ifstream file{path.value()}) {
                 file >> js;
+            }
 
             return js.get<Config>();
         } catch (const std::exception &ex) {
@@ -32,15 +34,18 @@ std::optional<Config> Config::load() {
 }
 
 bool Config::save() const {
-    if (!std::filesystem::exists(folder) || !std::filesystem::create_directory(folder))
-        return false;
-
-    try {
-        std::ofstream file{config};
-        if (file)
-            file << std::setw(4) << nlohmann::json{*this};
-        return true;
-    } catch (const std::exception &) {
+    const auto path = get_config_location();
+    if (!path || !fs::create_directories(path->parent_path())) {
         return false;
     }
+
+    try {
+        if (std::ofstream file{*path}) {
+            file << std::setw(4) << nlohmann::json{*this};
+        }
+        return true;
+    } catch (const std::exception &ex) {
+        utl::println("Error saving config file: {}", ex.what());
+    }
+    return false;
 }

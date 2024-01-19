@@ -7,8 +7,7 @@
 
 // credits: xSkins [https://github.com/0xf1a/xSkins]
 
-namespace
-{
+namespace {
     constexpr const short KNIFE_IDS[19] = {
         WEAPON_KNIFE_BAYONET,
         WEAPON_KNIFE_FLIP,
@@ -33,31 +32,25 @@ namespace
     constexpr const int ITEM_ID_HIGH = -1;
     constexpr const int ENTITY_QUALITY = 3;
 
-    UINT get_model_idx_by_name(const State &s, const char *name)
-    {
-        const auto &[mem, offsets, _] = s;
+    UINT get_model_idx_by_name(const State &s, std::string_view name) {
+        const auto &[mem, offs, _] = s;
 
-        DWORD cstate = mem.read<DWORD>(offsets.dwClientState);
-        DWORD nst = mem.read<DWORD>(cstate + offsets.m_dwModelPrecache); // CClientState + 0x529C -> INetworkStringTable* m_pModelPrecacheTable
-        DWORD nsd = mem.read<DWORD>(nst + 0x40);                         // INetworkStringTable + 0x40 -> INetworkStringDict* m_pItems
-        DWORD nsdi = mem.read<DWORD>(nsd + 0xC);                         // INetworkStringDict + 0xC -> void* m_pItems
-
-        for (UINT i = 0; i < 1024; i++)
-        {
-            DWORD nsdi_i = mem.read<DWORD>(nsdi + 0xC + i * 0x34);
-
-            char str[128] = {0};
-            if (mem.read(nsdi_i, str, sizeof(str)))
-                if (_stricmp(str, name) == 0)
-                    return i;
+        auto cstate = mem.read<DWORD>(offs.dwClientState);
+        auto nst = mem.read<DWORD>(cstate + offs.m_dwModelPrecache); // CClientState + 0x529C -> INetworkStringTable* m_pModelPrecacheTable
+        auto nsd = mem.read<DWORD>(nst + 0x40);                      // INetworkStringTable + 0x40 -> INetworkStringDict* m_pItems
+        auto nsdi = mem.read<DWORD>(nsd + 0xC);                      // INetworkStringDict + 0xC -> void* m_pItems
+        for (UINT i = 0; i < 1024; i++) {
+            auto nsdi_i = mem.read<DWORD>(nsdi + 0xC + i * 0x34);
+            auto str = mem.read<std::array<char, 128>>(nsdi_i);
+            if (utl::icompare(str.data(), name)) {
+                return i;
+            }
         }
         return 0;
     }
 
-    UINT get_model_idx(const State &s, const short itemIndex)
-    {
-        switch (itemIndex)
-        {
+    UINT get_model_idx(const State &s, const short item_idx) {
+        switch (item_idx) {
         case WEAPON_KNIFE:
             return get_model_idx_by_name(s, xorstr("models/weapons/v_knife_default_ct.mdl"));
         case WEAPON_KNIFE_T:
@@ -105,99 +98,89 @@ namespace
         }
     }
 
-    WeaponSkin get_weapon_skin(const Config &cfg, const short item_idx)
-    {
-        if (cfg.skin_map.count(item_idx))
-            return cfg.skin_map.at(item_idx);
-        return WeaponSkin("", item_idx, 0, 0.0001f);
+    DWORD get_handle_entity(const Memory &mem, const Offsets &offs, DWORD addr) {
+        auto handle = mem.read<DWORD>(addr) & 0xfff;
+        return mem.read<DWORD>(offs.dwEntityList2 + (handle - 1) * 0x10);
     }
 }
 
 SkinChanger::SkinChanger(const Config &cfg)
-    : modelIndex(0), localPlayer(0), last_knife_id(KNIFE_IDS[cfg.skins_knife_id])
-{
-}
+    : model_index(0), local(0), last_knife_id(KNIFE_IDS[cfg.skins_knife_id])
+{ }
 
-void SkinChanger::tick(const std::stop_token &token, const State &s)
-{
-    const auto &[mem, offsets, cfg] = s;
-    if (!cfg.skins_enabled)
-    {
+void SkinChanger::tick(const std::stop_token &token, const State &s) {
+    const auto &[mem, offs, cfg] = s;
+    if (!cfg.skins_enabled) {
         return;
     }
 
     // model index is different for each server and map
     // below is a simple way to keep track of local base in order to reset model index
     // while also avoiding doing unnecessary extra reads because of the external RPM overhead
-    DWORD tempPlayer = mem.read<DWORD>(offsets.dwLocalPlayer);
-    if (!tempPlayer)
-    { // client not connected to any server (works most of the time)
-        modelIndex = 0;
+    auto tmp_player = mem.read<DWORD>(offs.dwLocalPlayer);
+    if (!tmp_player) { // client not connected to any server (works most of the time)
+        model_index = 0;
         return;
-    }
-    else if (tempPlayer != localPlayer)
-    { // local base changed (new server join/demo record)
-        localPlayer = tempPlayer;
-        modelIndex = 0;
+    } else if (tmp_player != local) { // local base changed (new server join/demo record)
+        local = tmp_player;
+        model_index = 0;
     }
 
     short knife_idx = KNIFE_IDS[cfg.skins_knife_id];
-    if (last_knife_id != knife_idx)
-    {
-        modelIndex = 0;
+    if (last_knife_id != knife_idx) {
+        model_index = 0;
         last_knife_id = knife_idx;
     }
 
-    while (!modelIndex && !token.stop_requested())
-        modelIndex = get_model_idx(s, knife_idx);
+    while (!model_index && !token.stop_requested()) {
+        model_index = get_model_idx(s, knife_idx);
+    }
 
     // loop through m_hMyWeapons slots (8 will be enough)
-    for (UINT i = 0; i < 8; i++)
-    {
+    for (size_t i = 0; i < 8; i++) {
         // get entity of weapon in current slot
-        DWORD currentWeapon = mem.read<DWORD>(localPlayer + offsets.m_hMyWeapons + i * 0x4) & 0xfff;
-        currentWeapon = mem.read<DWORD>(offsets.dwEntityList2 + (currentWeapon - 1) * 0x10);
-        if (!currentWeapon)
-        {
+        auto current_weapon = get_handle_entity(mem, offs, local + offs.m_hMyWeapons + i * 0x4);
+        if (!current_weapon) {
             continue;
         }
 
-        short weaponIndex = mem.read<short>(currentWeapon + offsets.m_iItemDefinitionIndex);
-        WeaponSkin weaponSkin = get_weapon_skin(cfg, weaponIndex);
+        auto weapon_idx = mem.read<short>(current_weapon + offs.m_iItemDefinitionIndex);
+        auto skin = cfg.skin_map.count(weapon_idx) 
+            ? cfg.skin_map.at(weapon_idx) 
+            : WeaponSkin("", weapon_idx, 0, 0.0001f);
 
         // for knives, set item and model related properties
-        if (weaponIndex == WEAPON_KNIFE || weaponIndex == WEAPON_KNIFE_T || weaponIndex == knife_idx)
-        {
-            mem.write<short>(currentWeapon + offsets.m_iItemDefinitionIndex, knife_idx);
-            mem.write<UINT>(currentWeapon + offsets.m_nModelIndex, modelIndex);
-            mem.write<UINT>(currentWeapon + offsets.m_iViewModelIndex, modelIndex);
-            mem.write<int>(currentWeapon + offsets.m_iEntityQuality, ENTITY_QUALITY);
-            weaponSkin = WeaponSkin("", weaponIndex, cfg.skins_knife_skin_id, 0.0001f);
+        if (weapon_idx == WEAPON_KNIFE || weapon_idx == WEAPON_KNIFE_T || weapon_idx == knife_idx) {
+            mem.write<short>(current_weapon + offs.m_iItemDefinitionIndex, knife_idx);
+            mem.write<UINT>(current_weapon + offs.m_nModelIndex, model_index);
+            mem.write<UINT>(current_weapon + offs.m_iViewModelIndex, model_index);
+            mem.write<int>(current_weapon + offs.m_iEntityQuality, ENTITY_QUALITY);
+            skin = WeaponSkin("", weapon_idx, cfg.skins_knife_skin_id, 0.0001f);
         }
 
-        if (weaponSkin.kit != 0)
-        { // set skin properties
-            mem.write<int>(currentWeapon + offsets.m_iItemIDHigh, ITEM_ID_HIGH);
-            mem.write<UINT>(currentWeapon + offsets.m_nFallbackPaintKit, weaponSkin.kit);
-            mem.write<float>(currentWeapon + offsets.m_flFallbackWear, weaponSkin.wear);
+        if (skin.kit != 0) { // set skin properties
+            mem.write<int>(current_weapon + offs.m_iItemIDHigh, ITEM_ID_HIGH);
+            mem.write<UINT>(current_weapon + offs.m_nFallbackPaintKit, skin.kit);
+            mem.write<float>(current_weapon + offs.m_flFallbackWear, skin.wear);
         }
     }
 
     // get entity of weapon in our hands
-    DWORD activeWeapon = mem.read<DWORD>(localPlayer + offsets.m_hActiveWeapon) & 0xfff;
-    activeWeapon = mem.read<DWORD>(offsets.dwEntityList2 + (activeWeapon - 1) * 0x10);
-    if (!activeWeapon)
+    auto active_weapon = get_handle_entity(mem, offs, local + offs.m_hActiveWeapon);
+    if (!active_weapon) {
         return;
+    }
 
-    short weaponIndex = mem.read<short>(activeWeapon + offsets.m_iItemDefinitionIndex);
-    if (weaponIndex != knife_idx) // skip if current weapon is not already set to chosen knife
+    auto weapon_idx = mem.read<short>(active_weapon + offs.m_iItemDefinitionIndex);
+    if (weapon_idx != knife_idx) { // skip if current weapon is not already set to chosen knife
         return;
+    }
 
     // get viewmodel entity
-    DWORD activeViewModel = mem.read<DWORD>(localPlayer + offsets.m_hViewModel) & 0xfff;
-    activeViewModel = mem.read<DWORD>(offsets.dwEntityList2 + (activeViewModel - 1) * 0x10);
-    if (!activeViewModel)
+    auto view_model = get_handle_entity(mem, offs, local + offs.m_hViewModel);
+    if (!view_model) {
         return;
+    }
 
-    mem.write<UINT>(activeViewModel + offsets.m_nModelIndex, modelIndex);
+    mem.write<UINT>(view_model + offs.m_nModelIndex, model_index);
 }

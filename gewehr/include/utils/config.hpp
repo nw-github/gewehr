@@ -8,20 +8,17 @@
 
 #define FOLDER_NAME xorstr(".gw")
 
-struct Color
-{
+struct Color {
     BYTE r, g, b, a;
 
     Color(BYTE r = 0, BYTE g = 0, BYTE b = 0, BYTE a = 255)
         : r{r}, g{g}, b{b}, a{a}
-    {
-    }
+    { }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Color, r, g, b, a);
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Color, r, g, b, a);
-
-struct WeaponSkin
-{
+struct WeaponSkin {
     std::string name;
     SHORT id{0};
     UINT kit{0};
@@ -30,16 +27,15 @@ struct WeaponSkin
 public:
     WeaponSkin() = default;
 
-    WeaponSkin(const char *name, SHORT weapon_id, UINT paint_kit, float fallback_wear)
-        : name{name}, id{weapon_id}, kit{paint_kit}, wear{fallback_wear}
-    {
-    }
+    WeaponSkin(std::string &&name, SHORT weapon_id, UINT paint_kit, float fallback_wear)
+        : name{std::forward<std::string>(name)}, id{weapon_id}, kit{paint_kit}, wear{fallback_wear}
+    { }
+
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(WeaponSkin, name, id, kit, wear);
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WeaponSkin, name, id, kit, wear);
 
-struct Config
-{
+struct Config {
     // Global settings
     SHORT exit_key = VK_END;
     SHORT refresh_cfg_key = VK_F10;
@@ -60,7 +56,7 @@ struct Config
     // Skinchanger settings
     short skins_knife_id = 0;
     UINT skins_knife_skin_id = 0;
-    std::map<SHORT, WeaponSkin> skin_map;
+    std::unordered_map<SHORT, WeaponSkin> skin_map;
     // RCS settings
     float rcs_strength_x = 0.4f; // RCS pull strength X
     float rcs_strength_y = 0.2f; // RCS pull strength Y
@@ -88,9 +84,8 @@ public:
     Config() = default;
     static std::optional<Config> load();
     bool save() const;
-};
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Config,
+    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Config,
                                    exit_key,
                                    refresh_cfg_key,
                                    bhop_toggle_key,
@@ -124,3 +119,4 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Config,
                                    override_view,
                                    fov,
                                    viewmodel_fov);
+};

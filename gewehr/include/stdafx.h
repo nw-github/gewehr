@@ -14,19 +14,14 @@
 
 #include <vector>
 #include <string>
-#include <queue>
 #include <thread>
 #include <fstream>
-#include <sstream>
 #include <iostream>
 #include <filesystem>
-#include <mutex>
 #include <memory>
-#include <variant>
 #include <optional>
-
-#include <cstdarg>
-#include <cstdio>
+#include <span>
+#include <array>
 
 #include <valve_sdk/sdk.hpp>
 
