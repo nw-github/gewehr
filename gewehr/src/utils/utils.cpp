@@ -13,17 +13,20 @@ void utl::attach_console() {
     AttachConsole(GetCurrentProcessId());
 
     (void)freopen(xorstr("CONOUT$"), "w", stdout);
-    HANDLE new_out = CreateFileA(
-        xorstr("CONOUT$"), GENERIC_READ | GENERIC_WRITE,
-        FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, 
-        OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    HANDLE new_out = CreateFileA(xorstr("CONOUT$"),
+                                 GENERIC_READ | GENERIC_WRITE,
+                                 FILE_SHARE_READ | FILE_SHARE_WRITE,
+                                 NULL,
+                                 OPEN_EXISTING,
+                                 FILE_ATTRIBUTE_NORMAL,
+                                 NULL);
 
     SetStdHandle(STD_OUTPUT_HANDLE, new_out);
     SetConsoleTitleA(utl::randstr(utl::randint(10, 15)).c_str());
 
-    CONSOLE_CURSOR_INFO cursor_info = { 0 };
-    cursor_info.dwSize = sizeof(cursor_info);
-    cursor_info.bVisible = false;
+    CONSOLE_CURSOR_INFO cursor_info = {0};
+    cursor_info.dwSize              = sizeof(cursor_info);
+    cursor_info.bVisible            = false;
     SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursor_info);
 }
 
@@ -40,7 +43,7 @@ void utl::clear_console() {
     if (!GetConsoleScreenBufferInfo(out, &csbi))
         return;
 
-    COORD home = {0, 0};
+    COORD home  = {0, 0};
     DWORD cells = csbi.dwSize.X * csbi.dwSize.Y;
     DWORD count;
     if (!FillConsoleOutputCharacterA(out, ' ', cells, home, &count))
@@ -56,10 +59,22 @@ std::string utl::vk_to_string(int vk) {
 
     UINT sc = MapVirtualKeyA(vk, MAPVK_VK_TO_VSC_EX);
     switch (vk) {
-    case VK_LEFT:     case VK_UP:     case VK_RIGHT:  case VK_DOWN:
-    case VK_RCONTROL: case VK_RMENU:  case VK_LWIN:   case VK_RWIN:
-    case VK_APPS:     case VK_PRIOR:  case VK_NEXT:   case VK_END:
-    case VK_HOME:     case VK_INSERT: case VK_DELETE: case VK_DIVIDE:
+    case VK_LEFT:
+    case VK_UP:
+    case VK_RIGHT:
+    case VK_DOWN:
+    case VK_RCONTROL:
+    case VK_RMENU:
+    case VK_LWIN:
+    case VK_RWIN:
+    case VK_APPS:
+    case VK_PRIOR:
+    case VK_NEXT:
+    case VK_END:
+    case VK_HOME:
+    case VK_INSERT:
+    case VK_DELETE:
+    case VK_DIVIDE:
     case VK_NUMLOCK:
         sc |= KF_EXTENDED;
         break;
@@ -78,11 +93,10 @@ int utl::randint(int low, int high) {
 }
 
 std::string utl::randstr(int length) {
-    static const std::string chars = xorstr(
-        "0123456789"
-        "!@#$%^&*"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "abcdefghijklmnopqrstuvwxyz");
+    static const std::string chars = xorstr("0123456789"
+                                            "!@#$%^&*"
+                                            "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                                            "abcdefghijklmnopqrstuvwxyz");
 
     std::string str(length, '\0');
     std::generate(str.begin(), str.end(), [] {

@@ -1,5 +1,5 @@
-#include <stdafx.h>
 #include <shlobj.h>
+#include <stdafx.h>
 
 #include "utils/config.hpp"
 
@@ -14,7 +14,7 @@ namespace {
 
         return fs::path{documents} / FOLDER_NAME / xorstr("config.json");
     }
-}
+} // namespace
 
 std::optional<Config> Config::load() {
     if (const auto path = get_config_location()) {

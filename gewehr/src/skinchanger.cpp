@@ -9,39 +9,30 @@
 
 namespace {
     constexpr const short KNIFE_IDS[19] = {
-        WEAPON_KNIFE_BAYONET,
-        WEAPON_KNIFE_FLIP,
-        WEAPON_KNIFE_GUT,
-        WEAPON_KNIFE_KARAMBIT,
-        WEAPON_KNIFE_M9_BAYONET,
-        WEAPON_KNIFE_TACTICAL,
-        WEAPON_KNIFE_FALCHION,
-        WEAPON_KNIFE_SURVIVAL_BOWIE,
-        WEAPON_KNIFE_BUTTERFLY,
-        WEAPON_KNIFE_PUSH,
-        WEAPON_KNIFE_URSUS,
-        WEAPON_KNIFE_GYPSY_JACKKNIFE,
-        WEAPON_KNIFE_STILETTO,
-        WEAPON_KNIFE_WIDOWMAKER,
-        WEAPON_KNIFE_CSS,
-        WEAPON_KNIFE_CORD,
-        WEAPON_KNIFE_CANIS,
-        WEAPON_KNIFE_OUTDOOR,
+        WEAPON_KNIFE_BAYONET,  WEAPON_KNIFE_FLIP,           WEAPON_KNIFE_GUT,
+        WEAPON_KNIFE_KARAMBIT, WEAPON_KNIFE_M9_BAYONET,     WEAPON_KNIFE_TACTICAL,
+        WEAPON_KNIFE_FALCHION, WEAPON_KNIFE_SURVIVAL_BOWIE, WEAPON_KNIFE_BUTTERFLY,
+        WEAPON_KNIFE_PUSH,     WEAPON_KNIFE_URSUS,          WEAPON_KNIFE_GYPSY_JACKKNIFE,
+        WEAPON_KNIFE_STILETTO, WEAPON_KNIFE_WIDOWMAKER,     WEAPON_KNIFE_CSS,
+        WEAPON_KNIFE_CORD,     WEAPON_KNIFE_CANIS,          WEAPON_KNIFE_OUTDOOR,
         WEAPON_KNIFE_SKELETON,
     };
-    constexpr const int ITEM_ID_HIGH = -1;
+    constexpr const int ITEM_ID_HIGH   = -1;
     constexpr const int ENTITY_QUALITY = 3;
 
     UINT get_model_idx_by_name(const State &s, std::string_view name) {
         const auto &[mem, offs, _] = s;
 
         auto cstate = mem.read<DWORD>(offs.dwClientState);
-        auto nst = mem.read<DWORD>(cstate + offs.m_dwModelPrecache); // CClientState + 0x529C -> INetworkStringTable* m_pModelPrecacheTable
-        auto nsd = mem.read<DWORD>(nst + 0x40);                      // INetworkStringTable + 0x40 -> INetworkStringDict* m_pItems
-        auto nsdi = mem.read<DWORD>(nsd + 0xC);                      // INetworkStringDict + 0xC -> void* m_pItems
+        auto nst    = mem.read<DWORD>(
+            cstate + offs.m_dwModelPrecache); // CClientState + 0x529C -> INetworkStringTable*
+                                                 // m_pModelPrecacheTable
+        auto nsd = mem.read<DWORD>(
+            nst + 0x40); // INetworkStringTable + 0x40 -> INetworkStringDict* m_pItems
+        auto nsdi = mem.read<DWORD>(nsd + 0xC); // INetworkStringDict + 0xC -> void* m_pItems
         for (UINT i = 0; i < 1024; i++) {
             auto nsdi_i = mem.read<DWORD>(nsdi + 0xC + i * 0x34);
-            auto str = mem.read<std::array<char, 128>>(nsdi_i);
+            auto str    = mem.read<std::array<char, 128>>(nsdi_i);
             if (utl::icompare(str.data(), name)) {
                 return i;
             }
@@ -102,11 +93,10 @@ namespace {
         auto handle = mem.read<DWORD>(addr) & 0xfff;
         return mem.read<DWORD>(offs.dwEntityList + (handle - 1) * 0x10);
     }
-}
+} // namespace
 
 SkinChanger::SkinChanger(const Config &cfg)
-    : model_index(0), local(0), last_knife_id(KNIFE_IDS[cfg.skins_knife_id])
-{ }
+    : model_index(0), local(0), last_knife_id(KNIFE_IDS[cfg.skins_knife_id]) { }
 
 void SkinChanger::tick(const std::stop_token &token, const State &s) {
     const auto &[mem, offs, cfg] = s;
@@ -122,13 +112,13 @@ void SkinChanger::tick(const std::stop_token &token, const State &s) {
         model_index = 0;
         return;
     } else if (tmp_player != local) { // local base changed (new server join/demo record)
-        local = tmp_player;
+        local       = tmp_player;
         model_index = 0;
     }
 
     short knife_idx = KNIFE_IDS[cfg.skins_knife_id];
     if (last_knife_id != knife_idx) {
-        model_index = 0;
+        model_index   = 0;
         last_knife_id = knife_idx;
     }
 
@@ -145,9 +135,8 @@ void SkinChanger::tick(const std::stop_token &token, const State &s) {
         }
 
         auto weapon_idx = mem.read<short>(current_weapon + offs.m_iItemDefinitionIndex);
-        auto skin = cfg.skin_map.count(weapon_idx) 
-            ? cfg.skin_map.at(weapon_idx) 
-            : WeaponSkin("", weapon_idx, 0, 0.0001f);
+        auto skin       = cfg.skin_map.count(weapon_idx) ? cfg.skin_map.at(weapon_idx)
+                                                         : WeaponSkin("", weapon_idx, 0, 0.0001f);
 
         // for knives, set item and model related properties
         if (weapon_idx == WEAPON_KNIFE || weapon_idx == WEAPON_KNIFE_T || weapon_idx == knife_idx) {

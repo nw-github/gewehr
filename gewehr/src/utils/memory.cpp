@@ -11,8 +11,8 @@ namespace {
         if (!snapshot)
             return std::nullopt;
 
-        MODULEENTRY32 mod = { 0 };
-        mod.dwSize = sizeof(mod);
+        MODULEENTRY32 mod = {0};
+        mod.dwSize        = sizeof(mod);
         if (Module32First(snapshot.get(), &mod)) {
             do {
                 if (!module.compare(mod.szModule)) {
@@ -29,7 +29,7 @@ namespace {
             return std::nullopt;
 
         PROCESSENTRY32 entry = {0};
-        entry.dwSize = sizeof(entry);
+        entry.dwSize         = sizeof(entry);
         if (Process32First(snapshot.get(), &entry)) {
             do {
                 if (utl::icompare(name, entry.szExeFile)) {
@@ -40,7 +40,7 @@ namespace {
 
         return std::nullopt;
     }
-}
+} // namespace
 
 std::optional<Memory> Memory::init(std::string_view proc, std::string_view window_name) {
     HWND window = FindWindowA(nullptr, std::string(window_name).c_str());
@@ -60,11 +60,11 @@ std::optional<Memory> Memory::init(std::string_view proc, std::string_view windo
 
     while (true) {
         const auto engine = find_module(xorstr("engine.dll"), *pid),
-            client = find_module(xorstr("client.dll"), *pid);
+                   client = find_module(xorstr("client.dll"), *pid);
         if (engine && client) {
             return Memory{
-                .window = window,
-                .process = std::move(process),
+                .window     = window,
+                .process    = std::move(process),
                 .process_id = *pid,
                 .client_dll = client.value(),
                 .engine_dll = engine.value(),

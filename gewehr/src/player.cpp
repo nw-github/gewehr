@@ -2,9 +2,9 @@
 
 #include "features.hpp"
 
-#include "utils/utils.hpp"
-#include "utils/math.hpp"
 #include "utils/entity.hpp"
+#include "utils/math.hpp"
+#include "utils/utils.hpp"
 
 using namespace std::chrono_literals;
 
